@@ -1,5 +1,6 @@
 from evo import Evo
 import random as rnd
+import pandas as pd
 
 
 def sumstepsdown(L):
@@ -44,6 +45,12 @@ def main():
 
     # Print final results
     print(E)
+
+    # load the CSV file containing information about the sections
+    sections = pd.read_csv('sections.csv', header=0, delimiter=';')
+
+    # load the CSV file containing information about the TAs
+    tas = pd.read_csv('tas.csv', header=0, delimiter=';')
 
 
 if __name__ == '__main__':
