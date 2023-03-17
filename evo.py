@@ -7,6 +7,7 @@ March 14, 2023
 
 import random as rnd
 import copy
+from functools import reduce
 
 
 class Evo:
@@ -61,7 +62,7 @@ class Evo:
         # evaluating the function to every objective in the population
 
         # applying every registered function to a number, returning a value each time
-        eval = [(name, f(sol)) for name, f in self.fitness.items()]
+        eval = tuple([(name, f(sol)) for name, f in self.fitness.items()])
 
         # adding the new solution with its associated evaluation to the dictionary
         self.pop[eval] = sol
@@ -77,7 +78,7 @@ class Evo:
         new_solution = op(picks)
         self.add_solution(new_solution)
 
-    def evolve(self, n=1, dom=100):
+    def evolve(self, n=1, dom=100, status=100):
         """ To run n random agents against the population
         n = # of agent invocations
         dom = # of iterations between discarding the dominated solutions """
@@ -85,17 +86,43 @@ class Evo:
         # but this value may not be the best)
         agent_names = list(self.agents.keys())
         for i in range(n):
-            pick = rnd.choice(agent_names)
+            pick = rnd.choice(agent_names)  # pick an agent to run
             self.run_agent(pick)
             if i % dom == 0:
+                # remove the dominated solutions every 100 times by default
                 self.remove_dominated()
 
-        pass
+            if i % status == 0:  # print the population
+                self.remove_dominated()
+                print("Iteration: ", i)
+                print("Population Size: ", self.size())
+                print(self)
 
+            # Clean up population
+            self.remove_dominated()
 
-def main():
-    pass
+    @staticmethod
+    def _dominates(p, q):
+        pscores = [score for _, score in p]
+        qscores = [score for _, score in q]
+        score_diffs = list(map(lambda x, y: y - x, pscores, qscores))
+        min_diff = min(score_diffs)
+        max_diff = max(score_diffs)
+        return min_diff >= 0.0 and max_diff > 0.0
 
+    @staticmethod
+    # not a public method to be used outside the framework
+    # shared by every instance of the class but hidden by the user
+    def _reduce_nds(S, p):
+        return S - {q for q in S if Evo._dominates(p, q)}
 
-if __name__ == '__main__':
-    main()
+    def remove_dominated(self):
+        nds = reduce(Evo._reduce_nds, self.pop.keys(), self.pop.keys())
+        self.pop = {k: self.pop[k] for k in nds}
+
+    def __str__(self):
+        """ Output the solutions in the population """
+        rslt = ""
+        for eval, sol in self.pop.items():
+            rslt += str(dict(eval)) + ":\t" + str(sol) + "\n"
+        return rslt
