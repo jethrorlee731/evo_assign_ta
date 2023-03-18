@@ -1,25 +1,24 @@
 from evo import Evo
 import random as rnd
 import pandas as pd
+from collections import Counter
 
 
 def overallocation(L, max_col, data):
     """ Sum of the overallocation penalty over all TAs
-    L (list): list generated from the system of the number of labs assigned
+    L (list): the index # corresponds to a lab section, while the value in that index corresponds with a TA ID
     max_col (string): name of column of the TAs max number of labs
     data (dataframe): original dataframe containing information about a TA's availability
     """
     oa_sum = 0
 
     # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
-    for item, value in data.items():
-        for number in L:
-            # if assigned is greater than the number of labs requested by the TA
-            if L > int(data[max_col]):
-                # compute the difference between the two
-                diff = L - int(data[max_col])
-                # add to the sum of the overallocation
-                oa_sum = oa_sum + diff
+
+    # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
+    ta_lab_counts = dict(Counter(L))
+    for ta, labs in ta_lab_counts.items():
+        pass
+
 
     return oa_sum
 
@@ -32,14 +31,14 @@ def conflicts(L, data):
 
 def undersupport(L, min_col, data):
     """ Total/sum of undersupport penalty over all TAs
-    L (list): list generated from the system of the number of labs assigned
+    L (list): the index # corresponds to a lab section, while the value in that index corresponds with a TA ID
     min_col (string): name of column of the TAs min number of labs
     data (dataframe): original dataframe containing information about a TA's availability
     """
     us_sum = 0
 
     for item, value in data.items():
-        for number in L:
+        for lab in L:
             # if assigned is greater than the number of labs requested by the TA
             if L < int(data[min_col]):
                 # compute the difference between the two
@@ -52,7 +51,7 @@ def undersupport(L, min_col, data):
 
 def unwilling(L, data):
     """ Total/sum of allocating a TA to an unwilling section
-    L (list): list generated from the system of the assignments for a particular lab
+    L (list): the index # corresponds to a lab section, while the value in that index corresponds with a TA ID
     data (dataframe): original dataframe containing information about a TA's availability
     """
     unwilling = 0
@@ -68,7 +67,7 @@ def unwilling(L, data):
 
 def unpreferred(L, data):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
-    L (list): list generated from the system of the assignments for a particular lab
+    L (list): the index # corresponds to a lab section, while the value in that index corresponds with a TA ID
     data (dataframe): original dataframe containing information about a TA's availability
     """
 
@@ -105,11 +104,15 @@ def unpreferred(L, data):
 
 
 def main():
-    # load the CSV file containing information about the sections
+    # load the CSV file containing information about the sections and store the values into an array
     sections = pd.read_csv('sections.csv', header=0)
+    sections = sections.to_numpy()
+    print(sections)
 
-    # load the CSV file containing information about the TAs
+    # load the CSV file containing information about the TAs and store the values into an array
     tas = pd.read_csv('tas.csv', header=0)
+    tas = tas.to_numpy()
+    print(tas)
 
 
 # E = Evo()
