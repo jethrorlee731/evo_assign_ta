@@ -3,19 +3,23 @@ import random as rnd
 import pandas as pd
 
 
-def overallocation(max_col, data):
-    """ Sum of the overallocation penalty over all TAs """
+def overallocation(L, max_col, data):
+    """ Sum of the overallocation penalty over all TAs
+    L (list): list generated from the system of the number of labs assigned
+    max_col (string): name of column of the TAs max number of labs
+    data (dataframe): original dataframe
+    """
     oa_sum = 0
 
     # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
     for item, value in data.items():
-        # if assigned is greater than the number of labs requested by the TA
-        # NOT SURE HOW TO EXPRESS THE NUMBER OF LABS ASSIGNED BY OUR SYSTEM?
-        if data[max_col]
-            # compute the difference between the two
-
-            # add to the sum of the overallocation
-            oa_sum = oa_sum +
+        for number in L:
+            # if assigned is greater than the number of labs requested by the TA
+            if L > int(data[max_col]):
+                # compute the difference between the two
+                diff = L - int(data[max_col])
+                # add to the sum of the overallocation
+                oa_sum = oa_sum + diff
 
     return oa_sum
 
