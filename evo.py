@@ -8,6 +8,7 @@ March 27, 2023
 import random as rnd
 import copy
 from functools import reduce
+import time
 
 
 class Evo:
@@ -79,28 +80,41 @@ class Evo:
         self.add_solution(new_solution)
 
     # ADD A 10 MINUTE TIMER TO THIS FUNCTION
-    def evolve(self, n=1, dom=100, status=100):
+    def evolve(self, n=1, dom=100, status=100, time_limit=600):
         """ To run n random agents against the population
-        n = # of agent invocations
-        dom = # of iterations between discarding the dominated solutions """
+        Args:
+            n (int) - # of agent invocations
+            dom (int) - # of iterations between discarding the dominated solutions
+            status (int) - # of iterations between the last shown solution and the most recently shown one
+            time_limit (int) - # of seconds the optimizer runs for
+
+        Citation for time limit functionality:
+        https://stackoverflow.com/questions/2831775/running-a-python-script-for-a-user-specified-amount-of-time
+        """
         # dom determines how frequently we throw out the bad solutions (default is every 100 solutions,
         # but this value may not be the best)
-        agent_names = list(self.agents.keys())
-        for i in range(n):
-            pick = rnd.choice(agent_names)  # pick an agent to run
-            self.run_agent(pick)
-            if i % dom == 0:
-                # remove the dominated solutions every 100 times by default
-                self.remove_dominated()
 
-            if i % status == 0:  # print the population
-                self.remove_dominated()
-                print("Iteration: ", i)
-                print("Population Size: ", self.size())
-                print(self)
+        # retrieve the time this function started running
+        start_time = time.time()
 
-            # Clean up population
-            self.remove_dominated()
+        # run the evolve function for the user-specified amount of seconds
+        while (time.time() - start_time) < time_limit:
+            agent_names = list(self.agents.keys())
+            for i in range(n):
+                pick = rnd.choice(agent_names)  # pick an agent to run
+                self.run_agent(pick)
+                if i % dom == 0:
+                    # remove the dominated solutions every 100 times by default
+                    self.remove_dominated()
+    
+                if i % status == 0:  # print the population
+                    self.remove_dominated()
+                    print("Iteration: ", i)
+                    print("Population Size: ", self.size())
+                    print(self)
+
+                # Clean up population
+                self.remove_dominated()
 
     @staticmethod
     def _dominates(p, q):
