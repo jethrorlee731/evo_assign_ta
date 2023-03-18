@@ -3,8 +3,21 @@ import random as rnd
 import pandas as pd
 
 
-def overallocation():
+def overallocation(max_col, data):
     """ Sum of the overallocation penalty over all TAs """
+    oa_sum = 0
+
+    # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
+    for item, value in data.items():
+        # if assigned is greater than the number of labs requested by the TA
+        # NOT SURE HOW TO EXPRESS THE NUMBER OF LABS ASSIGNED BY OUR SYSTEM?
+        if data[max_col]
+            # compute the difference between the two
+
+            # add to the sum of the overallocation
+            oa_sum = oa_sum +
+
+    return oa_sum
 
 def conflicts():
     """ Number of TAs with one or more time conflicts """
@@ -41,7 +54,13 @@ def unpreferred():
 
 
 def main():
-    # E = Evo()
+    # load the CSV file containing information about the sections
+    sections = pd.read_csv('sections.csv', header=0)
+
+    # load the CSV file containing information about the TAs
+    tas = pd.read_csv('tas.csv', header=0)
+
+# E = Evo()
     #
     # # Register some objectives
     # E.add_fitness_criteria("ssd", sumstepsdown)
@@ -62,13 +81,7 @@ def main():
     # # Print final results
     # print(E)
 
-    # load the CSV file containing information about the sections
-    sections = pd.read_csv('sections.csv', header=0, delimiter=';')
 
-    # load the CSV file containing information about the TAs
-    tas = pd.read_csv('tas.csv', header=0, delimiter=';')
-
-    # print(sections)
 
 
 if __name__ == '__main__':
