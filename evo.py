@@ -1,8 +1,8 @@
 """
-Jethro R. Lee
+Jethro R. Lee and Michelle Wang
 DS3500
 HW4: An Evolutionary Approach to TA/Lab Assignments
-March 14, 2023
+March 27, 2023
 """
 
 import random as rnd
@@ -78,6 +78,7 @@ class Evo:
         new_solution = op(picks)
         self.add_solution(new_solution)
 
+    # ADD A 10 MINUTE TIMER TO THIS FUNCTION
     def evolve(self, n=1, dom=100, status=100):
         """ To run n random agents against the population
         n = # of agent invocations
