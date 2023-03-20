@@ -4,11 +4,11 @@ import pandas as pd
 from collections import Counter, defaultdict
 
 
-def overallocation(L, max_idx, ta_array):
+def overallocation(L, max_labs_idx, ta_array):
     """ Sum of the overallocation penalty over all TAs
     Args:
         L (dict): details the TAs assigned to each lab, where the section id = key and a list of TAs in that lab = value
-        max_idx (integer): index of column with info on the max number of labs a TA can assist
+        max_labs_idx (integer): index of column with info on the max number of labs a TA can assist
         ta_array (array): original array containing information about TAs' availability
     """
     tas = []
@@ -17,7 +17,7 @@ def overallocation(L, max_idx, ta_array):
     # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
 
     # retrieve the maximum number of labs each TA is willing to work at
-    ta_max_labs = ta_array[:, max_idx]
+    ta_max_labs = ta_array[:, max_labs_idx]
 
     # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
     ta_lists = L.values()
@@ -170,6 +170,84 @@ def unpreferred(L, availability_first_idx, availability_last_idx, ta_array, tas)
 #     j = rnd.randrange(0, len(L))
 #     L[i], L[j] = L[j], L[i]
 #     return L
+def add_ta(sections_array, min_ta_idx, ta_array, max_labs_idx, solutions, ta_num, num_tas):
+    """ Assigning a TA to a certain lab section
+    NEED TO ACCOUNT FOR TIME CONFLICTS AND PREFERENCES
+    Args:
+        sections_array (array): array containing information about each lab section
+        min_ta_idx (integer): index of column with info on the min number of TAs a lab needs
+        ta_array (array): original array containing information about TAs' availability
+        max_labs_idx (integer): index of column with info on the max number of labs a TA can assist
+        solutions (list): a list of possible TA lab assignments that could be optimal
+        ta_num (int): the maximum number of TAs
+        num_tas (int): number of TAs available
+    """
+    labs_in_need = []
+    L = solutions[0]
+
+    # retrieve the minimum number of TAs each lab requires
+    sections_min_tas = sections_array[:, min_ta_idx]
+
+    # determine which each lab needs more TAs
+    for lab, tas in L.items():
+        for i in range(len(sections_min_tas)):
+            if i == lab:
+                if len(tas) < sections_min_tas[i]:
+                    labs_in_need.append(lab)
+
+    # retrieve the maximum number of labs each TA is willing to work at
+    ta_max_labs = ta_array[:, max_labs_idx]
+
+    # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
+    ta_lists = L.values()
+    for ta_list in ta_lists:
+        tas += ta_list
+    ta_lab_counts = dict(Counter(tas))
+
+    # determine which TAs are over-allocated a certain number of labs
+    eligible_tas = [id for id in range[0, num_tas + 1]]
+    for ta, labs in ta_lab_counts.items():
+        for i in range(len(ta_max_labs)):
+            if ta == i:
+                if labs > ta_max_labs[i]:
+                    eligible_tas.remove(ta)
+
+    # choose a random lab that needs more TAs to receive a new TA
+    lab_to_receive_ta = rnd.choice(labs_in_need)
+
+    # choose a random TA to be assigned to a lab
+    ta_to_be_assigned = rnd.choice(eligible_tas)
+
+    # assign a TA to a lab if they aren't already assigned to that lab
+    for lab, ta_list in L.values():
+        if lab == lab_to_receive_ta and ta_to_be_assigned not in L[lab]:
+            L[lab].append(ta_to_be_assigned)
+
+    return L
+
+
+def remove_ta(solutions, lab_num, ta_num):
+    """ Removing a TA from a certain lab section
+    NEED TO ACCOUNT FOR TIME CONFLICTS AND PREFERENCES
+    Args:
+        solutions (list): a list of possible TA lab assignments that could be optimal
+        lab_num (int): the maximum number of labs
+        ta_num (int): the maximum number of TAs
+    """
+    L = solutions[0]
+
+    # choose a random lab to receive a new TA
+    lab_to_receive_ta = rnd.randrange(0, lab_num)
+
+    # choose a random TA to be removed from a lab
+    ta_to_be_assigned = rnd.randrange(0, ta_num)
+
+    # Remove a TA from a lab if they are already assigned to that lab
+    for lab, ta_list in L.values():
+        if lab == lab_to_receive_ta and ta_to_be_assigned in L[lab]:
+            L[lab].remove(ta_to_be_assigned)
+
+    return L
 
 
 def main():
@@ -191,9 +269,11 @@ def main():
 # # Register some agents
 # E.add_agent("swapper", swapper, k=1)
 #
-# # Seed the population with an initial random solution
+# Seed the population with an initial random solution (keys = lab sections, values = list of TAs assigned to that sec)
 # N = 30
-# L = [rnd.randrange(1, 99) for _ in range(N)]
+L = {0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+         30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 21, 42], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
+     10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: []}
 # E.add_solution(L)
 # print(E)
 #
