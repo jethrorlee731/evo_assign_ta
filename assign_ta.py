@@ -1,8 +1,8 @@
 from evo import Evo
 import random as rnd
-import pandas as pd
+import numpy as np
 from collections import Counter, defaultdict
-
+from numpy import genfromtxt
 
 def overallocation(L, max_labs_idx, ta_array):
     """ Sum of the overallocation penalty over all TAs
@@ -282,13 +282,13 @@ def remove_ta(solutions, lab_num, ta_array, max_labs_idx, availability_first_idx
 
 
 def main():
-    # load the CSV file containing information about the sections and store the values into an array
-    sections = pd.read_csv('sections.csv', header=0)
-    sections = sections.to_numpy()
+    # load the CSV file containing information about the sections and store the values into a numpy array
+    sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+    # print(sections)
 
     # load the CSV file containing information about the TAs and store the values into an array
-    tas = pd.read_csv('tas.csv', header=0)
-    tas = tas.to_numpy()
+    tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
+    # print(tas)
 
 
 # E = Evo()
@@ -300,11 +300,13 @@ def main():
 # # Register some agents
 # E.add_agent("swapper", swapper, k=1)
 #
-# Seed the population with an initial random solution (keys = lab sections, values = list of TAs assigned to that sec)
+# Seed the population with an initial random solution (numpy array of 17 columns by 43 rows as there are 17
+# # sections and 43 tas)
+# 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
 # N = 30
-L = {0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-         30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 21, 42], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
-     10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: []}
+# L = {0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+#          30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 21, 42], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
+#      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: []}
 # E.add_solution(L)
 # print(E)
 #
