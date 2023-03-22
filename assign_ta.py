@@ -36,27 +36,34 @@ def overallocation(L, ta_array):
     return oa_penalty
 
 
-def conflicts(L):
+def conflicts(L, daytime_array):
     """ Number of TAs with one or more time conflicts
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
+        daytime_array (numpy array): 1d array of the times for each of the 17 sections
     Return:
         total_conflict (int): number of tas with one or more time conflict
     """
-    # NEED TO ACCOUNT FOR DIFFERENT SECTIONS THAT RUN AT THE SAME TIME
-    # initialize default dict
-    conflict_dict = defaultdict(int)
+    # initialize variables and default dictionaries
+    total_conflict = 0
+    solutions_dict = defaultdict(int)
+    day_dict = defaultdict(list)
 
-    for row in L:
-        for item in row:
-            if item > 1:
-                # key: row as a tuple, value: number of overlaps
-                conflict_dict[tuple(row)] += 1
+    # numpy array containing index of where 1 is present in the L array
+    solutions = np.argwhere(L == 1)
 
-    # determine number of tas that have time conflicts (assigned to more than 1 lab at a time)
-    total_conflict = len(conflict_dict)
+    # create a dictionary with key: ta, value: section
+    for solution in solutions:
+        solutions_dict[solution[0]] = solution[1]
 
-    return total_conflict
+    for key, value in solutions_dict.items():
+        # append to a new dictionary with key being the ta, value being the section time
+        day_dict[key] = daytime_array[value]
+
+    for value in day_dict.values():
+        if len(set(value)) != len(value):
+            # there is a ta assigned to the same lab time over more than one section - add one to the counter
+            total_conflict += 1
 
 
 def undersupport(L, sections_array):
@@ -314,7 +321,7 @@ def main():
 
     # Register some objectives
     E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 1])
-    E.add_fitness_criteria("conflicts", conflicts)
+    E.add_fitness_criteria("conflicts", conflicts, daytime_array=sections[:, 2])
     E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
     E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
     E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
