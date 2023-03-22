@@ -2,174 +2,233 @@ from evo import Evo
 import random as rnd
 import numpy as np
 from collections import Counter, defaultdict
-from numpy import genfromtxt
+from collections import defaultdict
 
-def overallocation(L, max_labs_idx, ta_array):
+
+def overallocation(L, ta_array):
     """ Sum of the overallocation penalty over all TAs
     Args:
-        L (dict): details the TAs assigned to each lab, where the section id = key and a list of TAs in that lab = value
-        max_labs_idx (integer): index of column with info on the max number of labs a TA can assist
-        ta_array (array): original array containing information about TAs' availability
+        L (numpy array): 2d array with sections as columns and tas as rows
+        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
+
+    Return:
+        oa_penalty (int): total overallocation penalty across all tas
     """
-    tas = []
-    oa_sum = 0
+    # initialize empty list and variables
+    sum_total = []
+    oa_penalty = 0
 
-    # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
+    for row in L:
+        # get the sum of each row
+        total = sum(row)
+        # add it to the list
+        sum_total.append(total)
 
-    # retrieve the maximum number of labs each TA is willing to work at
-    ta_max_labs = ta_array[:, max_labs_idx]
+    # convert 1d array to a list
+    ta_array = list(ta_array)
 
-    # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
-    ta_lists = L.values()
-    for ta_list in ta_lists:
-        tas += ta_list
-    ta_lab_counts = dict(Counter(tas))
+    for a, b in zip(sum_total, ta_array):
+        if a > b:
+            # add to overallocation penalty the difference of how much was actually assigned and what
+            # the ta said their max was
+            oa_penalty += (a-b)
 
-    # determine whether each TA is over-allocated a certain number of labs
-    for ta, labs in ta_lab_counts.items():
-        for i in range(len(ta_max_labs)):
-            if ta == i:
-                # if a TA is assigned to more labs than they request, the number of labs they are over-allocated is
-                # quantified as an overallocation penalty
-                if labs > ta_max_labs[i]:
-                    # sums the overallocation penalty over all TAs
-                    oa_sum += (ta_max_labs[i] - labs)
+    return oa_penalty
 
-    return oa_sum
+    # tas = []
+    # oa_sum = 0
+    #
+    # # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
+    #
+    # # retrieve the maximum number of labs each TA is willing to work at
+    # ta_max_labs = ta_array[:, max_labs_idx]
+    #
+    # # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
+    # ta_lists = L.values()
+    # for ta_list in ta_lists:
+    #     tas += ta_list
+    # ta_lab_counts = dict(Counter(tas))
+    #
+    # # determine whether each TA is over-allocated a certain number of labs
+    # for ta, labs in ta_lab_counts.items():
+    #     for i in range(len(ta_max_labs)):
+    #         if ta == i:
+    #             # if a TA is assigned to more labs than they request, the number of labs they are over-allocated is
+    #             # quantified as an overallocation penalty
+    #             if labs > ta_max_labs[i]:
+    #                 # sums the overallocation penalty over all TAs
+    #                 oa_sum += (ta_max_labs[i] - labs)
+    #
+    # return oa_sum
 
 
-def conflicts(L, time_idx, ta_array, sections_array):
+def conflicts(L):
     """ Number of TAs with one or more time conflicts
     Args:
-        L (dict): details the TAs assigned to each lab, where the section id = key and a list of TAs in that lab = value
-        time_idx (int): index of column with information on a lab's meeting time
-        ta_array (array): original array containing information about TAs' availability
-        sections_array (array): array containing information about each lab section
-
-    Citation: https://stackoverflow.com/questions/1388818/how-can-i-compare-two-lists-in-python-and-return-matches
+        L (numpy array): 2d array with sections as columns and tas as rows
+    Return:
+        total_conflict (int): number of tas with one or more time conflict
     """
-    conflicts = 0
-    labs_for_ta = defaultdict(list)
-    lab_time_dict = defaultdict(list)
+    # initialize default dict
+    conflict_dict = defaultdict(int)
 
-    # create a dictionary that maps times (key) to a list of labs that run at the same times (key)
-    lab_times = sections_array[:, time_idx]
-    for i in range(len(lab_times)):
-        lab_time_dict[lab_times].append(i)
+    for row in L:
+        for item in row:
+            if item > 1:
+                # key: row as a tuple, value: number of overlaps
+                conflict_dict[tuple(row)] += 1
 
-    # create a dictionary that maps each TA (key) to a list of labs they assist (value)
-    for lab, tas in L.items():
-        for ta in tas:
-            labs_for_ta[ta].append(lab)
+    # determine number of tas that have time conflicts (assigned to more than 1 lab at a time)
+    total_conflict = len(conflict_dict)
 
-    # count the number of instances in which a TA is assigned to 2 or more labs that run at the same time
-    for ta, labs in labs_for_ta.items():
-        # if a TA has multiple time conflicts, this instance is counted as one overall time conflict for that TA
-        ta_with_conflict = None
-        for times, sections in lab_time_dict.items():
-            if len(set(labs) & set(sections)) > 1:
-                if ta_with_conflict is not None:
-                    conflicts += 1
-                    ta_with_conflict = ta
+    return total_conflict
 
-    return conflicts
+    # Citation: https://stackoverflow.com/questions/1388818/how-can-i-compare-two-lists-in-python-and-return-matches
+    # conflicts = 0
+    # labs_for_ta = defaultdict(list)
+    # lab_time_dict = defaultdict(list)
+    #
+    # # create a dictionary that maps times (key) to a list of labs that run at the same times (key)
+    # lab_times = sections_array[:, time_idx]
+    # for i in range(len(lab_times)):
+    #     lab_time_dict[lab_times].append(i)
+    #
+    # # create a dictionary that maps each TA (key) to a list of labs they assist (value)
+    # for lab, tas in L.items():
+    #     for ta in tas:
+    #         labs_for_ta[ta].append(lab)
+    #
+    # # count the number of instances in which a TA is assigned to 2 or more labs that run at the same time
+    # for ta, labs in labs_for_ta.items():
+    #     # if a TA has multiple time conflicts, this instance is counted as one overall time conflict for that TA
+    #     ta_with_conflict = None
+    #     for times, sections in lab_time_dict.items():
+    #         if len(set(labs) & set(sections)) > 1:
+    #             if ta_with_conflict is not None:
+    #                 conflicts += 1
+    #                 ta_with_conflict = ta
+    #
+    # return conflicts
 
 
-def undersupport(L, min_ta_idx, sections_array):
+def undersupport(L, sections_array):
     """ Total/sum of undersupport penalty over all TAs
     Args:
-        L (dict): details the TAs assigned to each lab, where the section id = key and a list of TAs in that lab = value
-        min_ta_idx (integer): index of column with info on the min number of TAs a lab needs
-        sections_array (array): array containing information about each lab section
+        L (numpy array): 2d array with sections as columns and tas as rows
+        sections_array (numpy array): 1d array of minimum ta number for each section
+    Return:
+        total_undersupport (int): total undersupport penalty over all tas
     """
-    undersupport_sum = 0
+    # initialize total for undersupport
+    total_undersupport = 0
 
-    # retrieve the minimum number of TAs each lab requires
-    sections_min_tas = sections_array[:, min_ta_idx]
+    # sum up each column of the array - number of tas for each column
+    ta_num = list(map(sum, zip(*L)))
 
-    # determine whether each lab needs more TAs
-    for lab, tas in L.items():
-        for i in range(len(sections_min_tas)):
-            if i == lab:
-                # if a lab is assigned less TAs than it needs, the additional number of TAs it needs is quantified as a
-                # penalty
-                if len(tas) < sections_min_tas[i]:
-                    # sums the under-support penalty over all labs
-                    undersupport_sum += (sections_min_tas[i] - len(tas))
+    sections_array = list(sections_array)
 
-    return undersupport_sum
+    for a, b in zip(ta_num, sections_array):
+        if a < b:
+            # add to total for undersupport
+            total_undersupport += (b-a)
+
+    return total_undersupport
+
+    # undersupport_sum = 0
+    #
+    # # retrieve the minimum number of TAs each lab requires
+    # sections_min_tas = sections_array[:, min_ta_idx]
+    #
+    # # determine whether each lab needs more TAs
+    # for lab, tas in L.items():
+    #     for i in range(len(sections_min_tas)):
+    #         if i == lab:
+    #             # if a lab is assigned less TAs than it needs, the additional number of TAs it needs is quantified as a
+    #             # penalty
+    #             if len(tas) < sections_min_tas[i]:
+    #                 # sums the under-support penalty over all labs
+    #                 undersupport_sum += (sections_min_tas[i] - len(tas))
+    #
+    # return undersupport_sum
 
 
-def unwilling(L, availability_first_idx, availability_last_idx, ta_array, tas):
+def unwilling(L, sections_array):
     """ Total/sum of allocating a TA to an unwilling section
     Args:
-        L (dict): details the TAs assigned to each lab, where the section id = key and a list of TAs in that lab = value
-        availability_first_idx (integer): index of the 1st column with info on a TA's availability
-        availability_last_idx (integer): index of the last column with info on a TA's availability
-        ta_array (array): original dataframe containing information about TAs' availability
-        tas (int): the number of TAs available
+        L (numpy array): 2d array with sections as columns and tas as rows
+        sections_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
+    Return:
+        unwilling_total (int): total of allocation a ta to an unwilling section
     """
-    unwilling = 0
+    # initialize counter for number of unwilling
+    unwilling_total = 0
 
-    # gather information on each TA's availability for each lab section
-    availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
+    # https://stackoverflow.com/questions/44639976/zip-three-2-d-arrays-into-tuples-of-3
+    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
+    # first element being from L and the second element being from sections_array
+    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1,2)))
 
-    # check the availability of each TA
-    for i in range(len(tas)):
-        ta_availability = list(availability[tas, :])
-        for lab, ta in L.items():
-            # count the number of times a TA is in a lab they are unwilling to help
-            if i in ta and ta_availability[lab] == "U":
-                unwilling += 1
+    for item in new_list:
+        if item[0] > 1 and item[1] == 'U':
+            # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
+            unwilling_total += 1
 
-    return unwilling
+    return unwilling_total
+
+    # unwilling = 0
+    #
+    # # gather information on each TA's availability for each lab section
+    # availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
+    #
+    # # check the availability of each TA
+    # for i in range(len(tas)):
+    #     ta_availability = list(availability[tas, :])
+    #     for lab, ta in L.items():
+    #         # count the number of times a TA is in a lab they are unwilling to help
+    #         if i in ta and ta_availability[lab] == "U":
+    #             unwilling += 1
+    #
+    # return unwilling
 
 
-def unpreferred(L, availability_first_idx, availability_last_idx, ta_array, tas):
+def unpreferred(L, sections_array):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
     Args:
-        L (dict): details the TAs assigned to each lab, where the section id = key and a list of TAs in that lab = value
-        availability_first_idx (integer): index of the 1st column with info on a TA's availability
-        availability_last_idx (integer): index of the last column with info on a TA's availability
-        ta_array (array): original dataframe containing information about TAs' availability
-        tas (int): the number of TAs available
+        L (numpy array): 2d array with sections as columns and tas as rows
+        sections_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
+    Returns:
+        unpreferred_total (int): total of allocation a ta to a willing section
     """
+    # initialize counter for number of unwilling
+    unpreferred_total = 0
 
-    unpreferred = 0
+    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
+    # first element being from L and the second element being from sections_array
+    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
 
-    # gather information on each TA's availability for each lab section
-    availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
+    for item in new_list:
+        if item[0] > 1 and item[1] == 'W':
+            # increase the number of willing counter if the ta is assigned and they say they are willing for that
+            unpreferred_total += 1
 
-    # check the availability of each TA
-    for i in range(len(tas)):
-        ta_availability = list(availability[tas, :])
-        for lab, ta in L.items():
-            # count the number of times a TA is in a lab they are in an un-preferred section
-            if i in ta and ta_availability[lab] == "W":
-                unpreferred += 1
+    return unpreferred_total
 
-    return unwilling
+    # unpreferred = 0
+    #
+    # # gather information on each TA's availability for each lab section
+    # availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
+    #
+    # # check the availability of each TA
+    # for i in range(len(tas)):
+    #     ta_availability = list(availability[tas, :])
+    #     for lab, ta in L.items():
+    #         # count the number of times a TA is in a lab they are in an un-preferred section
+    #         if i in ta and ta_availability[lab] == "W":
+    #             unpreferred += 1
+    #
+    # return unwilling
 
 
-# def sumstepsdown(L):
-#     """ Objective: Count total magnitude of steps down (larger to smaller value) """
-#     return sum([x - y for x, y in zip(L, L[1:]) if y < x])
-#
-#
-# def sumratio(L):
-#     """ Ratio of sum of first-half values to 2nd half values"""
-#     sz = len(L)
-#     return round(sum(L[:sz//2]) / sum(L[sz//2+1:]), 5)
-#
-#
-# # Creating agents (all agents take in solutions)
-# def swapper(solutions):
-#     """ Swap two random values """
-#     L = solutions[0]
-#     i = rnd.randrange(0, len(L))
-#     j = rnd.randrange(0, len(L))
-#     L[i], L[j] = L[j], L[i]
-#     return L
 def add_ta(sections_array, min_ta_idx, ta_array, max_labs_idx, availability_first_idx, availability_last_idx, solutions,
            ta_num, num_tas):
     """ Assigning a TA to a certain lab section
@@ -290,13 +349,15 @@ def main():
     tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
     # print(tas)
 
+    E = Evo()
 
-# E = Evo()
-#
-# # Register some objectives
-# E.add_fitness_criteria("ssd", sumstepsdown)
-# E.add_fitness_criteria("ratio", sumratio)
-#
+    # Register some objectives
+    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 1])
+    E.add_fitness_criteria("conflicts", conflicts)
+    E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
+    E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
+    E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
+
 # # Register some agents
 # E.add_agent("swapper", swapper, k=1)
 #
@@ -304,6 +365,8 @@ def main():
 # # sections and 43 tas)
 # 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
 # N = 30
+# FIGURE OUT HOW TO GENERATE RANDOM 43 ROWS BY 17 COLUMNS OF 0 AND 1S TO REPRESENT L
+
 # L = {0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
 #          30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 21, 42], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [],
 #      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: []}
