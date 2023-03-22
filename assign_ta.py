@@ -31,35 +31,9 @@ def overallocation(L, ta_array):
         if a > b:
             # add to overallocation penalty the difference of how much was actually assigned and what
             # the ta said their max was
-            oa_penalty += (a-b)
+            oa_penalty += (a - b)
 
     return oa_penalty
-
-    # tas = []
-    # oa_sum = 0
-    #
-    # # PROBABLY COULD CHANGE THIS INTO FUNCTIONAL PROGRAMMING INSTEAD?
-    #
-    # # retrieve the maximum number of labs each TA is willing to work at
-    # ta_max_labs = ta_array[:, max_labs_idx]
-    #
-    # # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
-    # ta_lists = L.values()
-    # for ta_list in ta_lists:
-    #     tas += ta_list
-    # ta_lab_counts = dict(Counter(tas))
-    #
-    # # determine whether each TA is over-allocated a certain number of labs
-    # for ta, labs in ta_lab_counts.items():
-    #     for i in range(len(ta_max_labs)):
-    #         if ta == i:
-    #             # if a TA is assigned to more labs than they request, the number of labs they are over-allocated is
-    #             # quantified as an overallocation penalty
-    #             if labs > ta_max_labs[i]:
-    #                 # sums the overallocation penalty over all TAs
-    #                 oa_sum += (ta_max_labs[i] - labs)
-    #
-    # return oa_sum
 
 
 def conflicts(L):
@@ -69,6 +43,7 @@ def conflicts(L):
     Return:
         total_conflict (int): number of tas with one or more time conflict
     """
+    # NEED TO ACCOUNT FOR DIFFERENT SECTIONS THAT RUN AT THE SAME TIME
     # initialize default dict
     conflict_dict = defaultdict(int)
 
@@ -82,33 +57,6 @@ def conflicts(L):
     total_conflict = len(conflict_dict)
 
     return total_conflict
-
-    # Citation: https://stackoverflow.com/questions/1388818/how-can-i-compare-two-lists-in-python-and-return-matches
-    # conflicts = 0
-    # labs_for_ta = defaultdict(list)
-    # lab_time_dict = defaultdict(list)
-    #
-    # # create a dictionary that maps times (key) to a list of labs that run at the same times (key)
-    # lab_times = sections_array[:, time_idx]
-    # for i in range(len(lab_times)):
-    #     lab_time_dict[lab_times].append(i)
-    #
-    # # create a dictionary that maps each TA (key) to a list of labs they assist (value)
-    # for lab, tas in L.items():
-    #     for ta in tas:
-    #         labs_for_ta[ta].append(lab)
-    #
-    # # count the number of instances in which a TA is assigned to 2 or more labs that run at the same time
-    # for ta, labs in labs_for_ta.items():
-    #     # if a TA has multiple time conflicts, this instance is counted as one overall time conflict for that TA
-    #     ta_with_conflict = None
-    #     for times, sections in lab_time_dict.items():
-    #         if len(set(labs) & set(sections)) > 1:
-    #             if ta_with_conflict is not None:
-    #                 conflicts += 1
-    #                 ta_with_conflict = ta
-    #
-    # return conflicts
 
 
 def undersupport(L, sections_array):
@@ -130,26 +78,9 @@ def undersupport(L, sections_array):
     for a, b in zip(ta_num, sections_array):
         if a < b:
             # add to total for undersupport
-            total_undersupport += (b-a)
+            total_undersupport += (b - a)
 
     return total_undersupport
-
-    # undersupport_sum = 0
-    #
-    # # retrieve the minimum number of TAs each lab requires
-    # sections_min_tas = sections_array[:, min_ta_idx]
-    #
-    # # determine whether each lab needs more TAs
-    # for lab, tas in L.items():
-    #     for i in range(len(sections_min_tas)):
-    #         if i == lab:
-    #             # if a lab is assigned less TAs than it needs, the additional number of TAs it needs is quantified as a
-    #             # penalty
-    #             if len(tas) < sections_min_tas[i]:
-    #                 # sums the under-support penalty over all labs
-    #                 undersupport_sum += (sections_min_tas[i] - len(tas))
-    #
-    # return undersupport_sum
 
 
 def unwilling(L, sections_array):
@@ -166,7 +97,7 @@ def unwilling(L, sections_array):
     # https://stackoverflow.com/questions/44639976/zip-three-2-d-arrays-into-tuples-of-3
     # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
     # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1,2)))
+    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
 
     for item in new_list:
         if item[0] > 1 and item[1] == 'U':
@@ -175,27 +106,12 @@ def unwilling(L, sections_array):
 
     return unwilling_total
 
-    # unwilling = 0
-    #
-    # # gather information on each TA's availability for each lab section
-    # availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
-    #
-    # # check the availability of each TA
-    # for i in range(len(tas)):
-    #     ta_availability = list(availability[tas, :])
-    #     for lab, ta in L.items():
-    #         # count the number of times a TA is in a lab they are unwilling to help
-    #         if i in ta and ta_availability[lab] == "U":
-    #             unwilling += 1
-    #
-    # return unwilling
 
-
-def unpreferred(L, sections_array):
+def unpreferred(L, preference_array):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
-        sections_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
+        preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
     Returns:
         unpreferred_total (int): total of allocation a ta to a willing section
     """
@@ -204,7 +120,7 @@ def unpreferred(L, sections_array):
 
     # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
     # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
+    new_list = list(map(tuple, np.dstack((L, preference_array)).reshape(-1, 2)))
 
     for item in new_list:
         if item[0] > 1 and item[1] == 'W':
@@ -213,129 +129,174 @@ def unpreferred(L, sections_array):
 
     return unpreferred_total
 
-    # unpreferred = 0
-    #
-    # # gather information on each TA's availability for each lab section
-    # availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
-    #
-    # # check the availability of each TA
-    # for i in range(len(tas)):
-    #     ta_availability = list(availability[tas, :])
-    #     for lab, ta in L.items():
-    #         # count the number of times a TA is in a lab they are in an un-preferred section
-    #         if i in ta and ta_availability[lab] == "W":
-    #             unpreferred += 1
-    #
-    # return unwilling
 
-
-def add_ta(sections_array, min_ta_idx, ta_array, max_labs_idx, availability_first_idx, availability_last_idx, solutions,
-           ta_num, num_tas):
+def add_ta(L, sections_array, ta_array, preference_array):
     """ Assigning a TA to a certain lab section
-    NEED TO ACCOUNT FOR TIME CONFLICTS
-    Also need to consider preferred vs. willing
     This code is very messy and will likely need to be cleaned up
     Args:
-        sections_array (array): array containing information about each lab section
-        min_ta_idx (integer): index of column with info on the min number of TAs a lab needs
-        ta_array (array): original array containing information about TAs' availability
-        max_labs_idx (integer): index of column with info on the max number of labs a TA can assist
-        availability_first_idx (integer): index of the 1st column with info on a TA's availability
-        availability_last_idx (integer): index of the last column with info on a TA's availability
-        solutions (list): a list of possible TA lab assignments that could be optimal
-        ta_num (int): the maximum number of TAs
-        num_tas (int): number of TAs available
+        L (numpy array): 2d array with sections as columns and tas as rows
+        sections_array (numpy array): 1d array of minimum TA number for each section
+        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
+        preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
     """
-    labs_in_need = []
-    L = solutions[0]
-    ta_master_list = []
-    preferred = []
-    available_ta = False
+    candidate_tas = []
+    lab_total = []
 
-    # retrieve the minimum number of TAs each lab requires
-    sections_min_tas = sections_array[:, min_ta_idx]
+    # get the number of TAs each TA is assigned to and store those values in a list
+    for row in L:
+        # get the sum of each row
+        total = sum(row)
+        # add it to the list
+        lab_total.append(total)
 
-    # determine which each lab needs more TAs
-    for lab, tas in L.items():
-        for i in range(len(sections_min_tas)):
-            if i == lab:
-                if len(tas) < sections_min_tas[i]:
-                    labs_in_need.append(lab)
+    # convert 1d array containing the max amount of labs each TA wants to be assigned to a list
+    ta_array = list(ta_array)
+    # sum up each column of the array - number of TAs assigned to each lab
+    ta_num = list(map(sum, zip(*L)))
+    # gather the minimum number of TAs each lab needs and store those values in a list
+    sections_array = list(sections_array)
 
-    # retrieve the maximum number of labs each TA is willing to work at
-    ta_max_labs = ta_array[:, max_labs_idx]
+    # create a list of tuples, where the first element is the number of TAs assigned to a lab and the second is the
+    # minimum number of TAs each lab needs
+    assigned_vs_needed = list(zip(ta_num, sections_array))
 
-    # create a dictionary where the key = a TA ID and the value = the number of labs assigned to that TA
-    ta_lists = L.values()
-    for ta_list in ta_lists:
-        ta_master_list += ta_list
-    ta_lab_counts = dict(Counter(ta_master_list))
+    # get the preferences TAs have for working in particular sections and store them in a list
+    preferences = list(preference_array).reshape(-1, 2)
 
-    # determine which TAs are over-allocated a certain number of labs
-    eligible_tas = [id for id in range[0, num_tas + 1]]
-    for ta, labs in ta_lab_counts.items():
-        for i in range(len(ta_max_labs)):
-            if ta == i:
-                if labs > ta_max_labs[i]:
-                    eligible_tas.remove(ta)
+    # can definitely break apart into functions
 
-    # choose a random lab that needs more TAs to receive a new TA
-    lab_to_receive_ta = rnd.choice(labs_in_need)
+    for i in range(len(assigned_vs_needed)):
+        # Labs that need more TAs are prioritized first
+        if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
+            lab_to_receive_ta = i
+            # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
+            # first element being from L and the second element being from sections_array
+            for j in range(len(preferences)):
+                # if a TA prefers to work in the lab to receive a TA and hasn't reached their section limit, they are
+                # a candidate TA for that section
+                if preferences[j][i] == 'P' and (lab_total[i] < ta_array[i]):
+                    candidate_tas.append(j)
 
-    # gather the TAs that prefer to work at that lab section
-    availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
-    ta_availability = list(availability[:, lab_to_receive_ta])
-    for i in range(len(ta_availability)):
-        if availability == "P":
-            preferred.append(i)
-        elif availability == "U":
-            eligible_tas.remove(i)
+        # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
+        # instead
+        if len(candidate_tas == 0):
+            for i in range(len(assigned_vs_needed)):
+                lab_to_receive_ta = i
+                if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
+                    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
+                    # first element being from L and the second element being from sections_array
+                    for j in range(len(preferences)):
+                        if preferences[j][i] == 'W' and (lab_total[i] < ta_array[i]):
+                            candidate_tas.append(j)
 
-    # choose a random TA to be assigned to a lab (prioritizing the TAs who want to work for that section)
-    while not available_ta:
-        if len(preferred) > 0:
-            ta_to_be_assigned = rnd.choice(preferred)
+        # if there are candidate TAs available, choose one at random to be assigned to the lab
+        if len(candidate_tas > 0):
+            ta_to_be_assigned = rnd.choice(candidate_tas)
+            while not ta_assigned:
+                # only select from TAs who don't have time conflicts for that section
+                if L[ta_to_be_assigned, lab_to_receive_ta] >= 1:
+                    candidate_tas.remove(ta_to_be_assigned)
+                    ta_to_be_assigned = rnd.choice(candidate_tas)
+                else:
+                    # assign a TA to a lab section if they don't have time conflicts
+                    L[ta_to_be_assigned, lab_to_receive_ta] = 1
+                    ta_assigned = True
         else:
-            ta_to_be_assigned = rnd.choice(eligible_tas)
+            # now focus on labs that have enough TAs
+            for i in range(len(assigned_vs_needed)):
+                lab_to_receive_ta = i
+                # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
+                # first element being from L and the second element being from sections_array
+                for j in range(len(preferences)):
+                    # if a TA prefers to work in the lab to receive a TA and hasn't reached their section limit,
+                    # they are a candidate TA for that section
+                    if preferences[j][i] == 'P' and (lab_total[i] < ta_array[i]):
+                        candidate_tas.append(j)
 
-        # assign a TA to a lab if they aren't already assigned to that lab
-        for lab, ta_list in L.values():
-            if lab == lab_to_receive_ta and ta_to_be_assigned not in L[lab]:
-                L[lab].append(ta_to_be_assigned)
-                available_ta = True
+            # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
+            # instead
+            if len(candidate_tas == 0):
+                for i in range(len(assigned_vs_needed)):
+                    lab_to_receive_ta = i
+                    if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
+                        # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
+                        # first element being from L and the second element being from sections_array
+                        for j in range(len(preferences)):
+                            if preferences[j][i] == 'W' and (lab_total[i] < ta_array[i]):
+                                candidate_tas.append(j)
+
+            # if there are candidate TAs available, choose one at random to be assigned to the lab
+            if len(candidate_tas > 0):
+                ta_to_be_assigned = rnd.choice(candidate_tas)
+                while not ta_assigned:
+                    # only select from TAs who don't have time conflicts for that section
+                    if L[ta_to_be_assigned, lab_to_receive_ta] >= 1:
+                        candidate_tas.remove(ta_to_be_assigned)
+                        ta_to_be_assigned = rnd.choice(candidate_tas)
+                    else:
+                        # assign a TA to a lab section if they don't have time conflicts
+                        L[ta_to_be_assigned, lab_to_receive_ta] = 1
+                        ta_assigned = True
+            else:
+                # don't assign a TA to the lab section to be assigned a new TA if no candidates are available
+                break
 
     return L
 
 
-def remove_ta(solutions, lab_num, ta_array, max_labs_idx, availability_first_idx, availability_last_idx):
+def remove_ta(L, sections_array, ta_array, preference_array):
     """ Removing a TA(s) from a certain lab section
     NEED TO ACCOUNT TIME CONFLICTS AND OVERALLOCATIONS
     Also need to consider preferred vs. willing
     This code is very messy and will likely need to be cleaned up
     Args:
-        solutions (list): a list of possible TA lab assignments that could be optimal
-        lab_num (int): the maximum number of labs
-        ta_array (array): original array containing information about TAs' availability
-        max_labs_idx (integer): index of column with info on the max number of labs a TA can assist
-        availability_first_idx (integer): index of the 1st column with info on a TA's availability
-        availability_last_idx (integer): index of the last column with info on a TA's availability
+        L (numpy array): 2d array with sections as columns and tas as rows
+        sections_array (numpy array): 1d array of minimum TA number for each section
+        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
+        preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
     """
-    L = solutions[0]
-    unpreferred_tas = []
+    candidate_tas = []
+    lab_total = []
 
-    # gather the TAs that don't want to work at that lab section
-    availability = ta_array[:, availability_first_idx:availability_last_idx + 1]
-    for i in range(len(lab_num)):
-        ta_availability = list(availability[:, i])
-        for j in range(len(ta_availability)):
-            if availability == "U":
-                unpreferred_tas.append(j)
+    # get the number of TAs each TA is assigned to and store those values in a list
+    for row in L:
+        # get the sum of each row
+        total = sum(row)
+        # add it to the list
+        lab_total.append(total)
 
-        # Remove a TA from a lab they don't want to work at if they are already assigned to that lab
-        for unpreferred_ta in unpreferred_tas:
-            for lab, ta_list in L.values():
-                if lab == lab_num[i] and unpreferred_ta in L[lab]:
-                    L[lab].remove(unpreferred_ta)
+    # convert 1d array containing the max amount of labs each TA wants to be assigned to a list
+    ta_array = list(ta_array)
+    # sum up each column of the array - number of TAs assigned to each lab
+    ta_num = list(map(sum, zip(*L)))
+    # gather the minimum number of TAs each lab needs and store those values in a list
+    sections_array = list(sections_array)
+
+    # create a list of tuples, where the first element is the number of TAs assigned to a lab and the second is the
+    # minimum number of TAs each lab needs
+    assigned_vs_needed = list(zip(ta_num, sections_array))
+
+    # get the preferences TAs have for working in particular sections and store them in a list
+    preferences = list(preference_array).reshape(-1, 2)
+
+    # can definitely break apart into functions
+
+    for i in range(len(assigned_vs_needed)):
+
+        lab_to_lose_ta = i
+        # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
+        # first element being from L and the second element being from sections_array
+        for j in range(len(preferences)):
+            # if a TA does not prefer to work in a lab they are assigned to, remove them from that section
+            if preferences[j][i] == 'U':
+                candidate_tas.append(j)
+
+        # if there are candidate TAs available to be removed, unassigned each one from the lab to lose a TA
+        if len(candidate_tas > 0):
+            for ta in candidate_tas:
+                # only remove TAs from sections they were already assigned to
+                if L[ta, lab_to_lose_ta] >= 1:
+                    L[ta, lab_to_lose_ta] = 0
 
     return L
 
@@ -357,6 +318,7 @@ def main():
     E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
     E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
     E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
+
 
 # # Register some agents
 # E.add_agent("swapper", swapper, k=1)
