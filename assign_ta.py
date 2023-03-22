@@ -100,7 +100,7 @@ def unwilling(L, sections_array):
     new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
 
     for item in new_list:
-        if item[0] > 1 and item[1] == 'U':
+        if item[0] == 1 and item[1] == 'U':
             # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
             unwilling_total += 1
 
@@ -123,7 +123,7 @@ def unpreferred(L, preference_array):
     new_list = list(map(tuple, np.dstack((L, preference_array)).reshape(-1, 2)))
 
     for item in new_list:
-        if item[0] > 1 and item[1] == 'W':
+        if item[0] == 1 and item[1] == 'W':
             # increase the number of willing counter if the ta is assigned and they say they are willing for that
             unpreferred_total += 1
 
