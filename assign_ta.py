@@ -167,6 +167,8 @@ def add_ta(L, sections_array, ta_array, preference_array):
     # minimum number of TAs each lab needs
     assigned_vs_needed = list(zip(ta_num, sections_array))
 
+    # SHOULDN'T THIS STILL BE A NUMPY ARRAY? I'M CONFUSED AT THE WHY YOU ARE RESHAPING IT TO HAVE TWO COLUMNS?
+    # SHOULDN'T IT JUST BE NUMPY ARRAY FROM TA.PY?
     # get the preferences TAs have for working in particular sections and store them in a list
     preferences = list(preference_array).reshape(-1, 2)
 
@@ -200,6 +202,8 @@ def add_ta(L, sections_array, ta_array, preference_array):
         if len(candidate_tas > 0):
             ta_to_be_assigned = rnd.choice(candidate_tas)
             while not ta_assigned:
+                # CAN YOU CHANGE THIS BASED ON THE NEW CONFLICTS FUNCTION
+                # SORRY ABOUT MISINTERPRETING THE CONFLICTS FUNCTION AT FIRST
                 # only select from TAs who don't have time conflicts for that section
                 if L[ta_to_be_assigned, lab_to_receive_ta] >= 1:
                     candidate_tas.remove(ta_to_be_assigned)
