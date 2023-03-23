@@ -172,8 +172,9 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
     # minimum number of TAs each lab needs
     assigned_vs_needed = list(zip(ta_num, sections_array))
 
-    # get the preferences TAs have for working in particular sections and store them in a list
-    preferences = list(preference_array)
+    # get the preferences TAs have for working in particular sections and store them in a 2d list
+    # preferences = list(preference_array)
+    preferences = preference_array.tolist()
 
     # numpy array containing index of where 1 is present in the L array
     solutions = np.argwhere(L == 1)
@@ -293,7 +294,8 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
     assigned_vs_needed = list(zip(ta_num, sections_array))
 
     # get the preferences TAs have for working in particular sections and store them in a list
-    preferences = list(preference_array)
+    # preferences = list(preference_array)
+    preferences = preference_array.tolist()
 
     # can definitely break apart into functions
 
