@@ -6,6 +6,13 @@ from evo import Evo
 import assign_ta
 import numpy as np
 
+sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
+
+test1 = np.loadtxt('test1.csv', delimiter=',', dtype=str)
+test2 = np.loadtxt('test2.csv', delimiter=',', dtype=str)
+test3 = np.loadtxt('test3.csv', delimiter=',', dtype=str)
+
 @pytest.fixture
 # function that creates the object
 def evo():
@@ -15,29 +22,38 @@ def test_overallocation(evo):
     """
     Check that the overallocation function is working correctly
     """
-    assert evo.overallocation(np.array([[0, 0, 0, 0, 0, 1, 1], [1, 1, 1, 1, 0, 0, 0], [1, 0, 1, 0, 1, 0, 0],
-                                        [1, 1, 0, 0, 0, 0, 0]]), np.array([1, 2, 3, 1])) == 4
+    assert evo.overallocation(test1, tas[:, 2]) == 37
+    assert evo.overallocation(test2, tas[:, 2]) == 41
+    assert evo.overallocation(test3, tas[:, 2]) == 23
 
 def test_conflicts(evo):
-    assert evo.conflicts(np.array([[0, 0, 0, 0, 0, 1, 1], [1, 1, 1, 1, 0, 0, 0], [1, 0, 1, 0, 1, 0, 0],
-                                        [1, 1, 0, 0, 0, 0, 0]]), np.array(['R 1145-125', 'R 1145-125',
-                                                                           'W 950-1130', 'W 950-1130',
-                                                                           'W 250-430', 'W 250-430',
-                                                                           'R 250-430'])) == 2
+    """
+    Check that conflicts function is working correctly
+    """
+    assert evo.conflicts(test1, sections[:, 2]) == 8
+    assert evo.conflicts(test2, sections[:, 2]) == 5
+    assert evo.conflicts(test3, sections[:, 2]) == 2
+
 def test_undersupport(evo):
-    assert evo.undersupport(np.array([[0, 0, 0, 0, 0, 1, 1], [1, 1, 1, 1, 0, 0, 0], [1, 0, 1, 0, 1, 0, 0],
-                                        [1, 1, 0, 0, 0, 0, 0]]), np.array([4, 2, 1, 4, 2, 3, 1])) == 7
+    """
+    Check that undersupport function is working correctly
+    """
+    assert evo.undersupport(test1, sections[:, 6]) == 1
+    assert evo.undersupport(test2, sections[:, 6]) == 0
+    assert evo.undersupport(test3, sections[:, 6]) == 7
 
 def test_unwilling(evo):
-    assert evo.unwilling(np.array([[0, 0, 0, 0, 0, 1, 1], [1, 1, 1, 1, 0, 0, 0], [1, 0, 1, 0, 1, 0, 0],
-                                        [1, 1, 0, 0, 0, 0, 0]]), np.array([['U', 'U', 'U', 'U', 'P', 'U', 'W'],
-                                                                          ['U', 'U', 'P', 'W', 'P', 'U', 'U'],
-                                                                          ['U', 'P', 'P', 'W', 'W', 'U', 'U'],
-                                                                          ['U', 'P', 'W', 'U', 'U', 'U', 'U']])) == 5
+    """
+    Check that unwilling function is working correctly
+    """
+    assert evo.unwilling(test1, sections[1:, 3:]) == 53
+    assert evo.unwilling(test2, sections[1:, 3:]) == 58
+    assert evo.unwilling(test3, sections[1:, 3:]) == 43
 
 def test_unpreferred(evo):
-    assert evo.unpreferred(np.array([[0, 0, 0, 0, 0, 1, 1], [1, 1, 1, 1, 0, 0, 0], [1, 0, 1, 0, 1, 0, 0],
-                                        [1, 1, 0, 0, 0, 0, 0]]), np.array([['U', 'U', 'U', 'U', 'P', 'U', 'W'],
-                                                                          ['U', 'U', 'P', 'W', 'P', 'U', 'U'],
-                                                                          ['U', 'P', 'P', 'W', 'W', 'U', 'U'],
-                                                                          ['U', 'P', 'W', 'U', 'U', 'U', 'U']])) == 3
+    """
+    Check that unpreferred function is working correctly
+    """
+    assert evo.unpreferred(test1, sections[1:, 3:])
+    assert evo.unpreferred(test2, sections[1:, 3:])
+    assert evo.unpreferred(test3, sections[1:, 3:])

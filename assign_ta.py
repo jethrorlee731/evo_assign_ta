@@ -219,7 +219,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
         # if there are candidate TAs available, choose one at random to be assigned to the lab
         if len(candidate_tas > 0):
             ta_to_be_assigned = rnd.choice(candidate_tas)
-            L[ta_to_be_assigned, lab_to_receive_ta] = 1
+            L[ta_to_be_assigned, lab_to_receive_ta] = '1'
 
         else:
             # now focus on labs that have enough TAs
@@ -248,7 +248,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
             # if there are candidate TAs available, choose one at random to be assigned to the lab
             if len(candidate_tas > 0):
                 ta_to_be_assigned = rnd.choice(candidate_tas)
-                L[ta_to_be_assigned, lab_to_receive_ta] = 1
+                L[ta_to_be_assigned, lab_to_receive_ta] = '1'
 
             else:
                 # don't assign a TA to the lab section to be assigned a new TA if no candidates are available
@@ -326,7 +326,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
             for ta in unassigned_tas:
                 # only remove TAs from sections they were already assigned to
                 if int(L[ta, lab_to_lose_ta]) >= 1:
-                    L[ta, lab_to_lose_ta] = 0
+                    L[ta, lab_to_lose_ta] = '0'
 
     return L
 
@@ -383,7 +383,7 @@ def main():
     E = Evo()
 
     # Register some objectives
-    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 1])
+    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 2])
     E.add_fitness_criteria("conflicts", conflicts, daytime_array=sections[:, 2])
     E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
     E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
