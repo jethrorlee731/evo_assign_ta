@@ -1,13 +1,14 @@
 import pandas as pd
 
-from evo import Evo
+from evo_copy import Evo
 import random as rnd
 import numpy as np
 from collections import Counter, defaultdict
 from collections import defaultdict
+from numpy import random
 
 
-def overallocation(L, ta_array):
+def overallocation(L, ta_array=None):
     """ Sum of the overallocation penalty over all TAs
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
@@ -28,6 +29,7 @@ def overallocation(L, ta_array):
 
     # convert 1d array to a list
     ta_array = list(ta_array)
+    # print(ta_array)
 
     for a, b in zip(sum_total, ta_array):
         if a > b:
@@ -38,7 +40,7 @@ def overallocation(L, ta_array):
     return oa_penalty
 
 
-def conflicts(L, daytime_array):
+def conflicts(L, daytime_array=None):
     """ Number of TAs with one or more time conflicts
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
@@ -68,7 +70,7 @@ def conflicts(L, daytime_array):
             total_conflict += 1
 
 
-def undersupport(L, sections_array):
+def undersupport(L, sections_array=None):
     """ Total/sum of undersupport penalty over all TAs
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
@@ -92,7 +94,7 @@ def undersupport(L, sections_array):
     return total_undersupport
 
 
-def unwilling(L, sections_array):
+def unwilling(L, sections_array=None):
     """ Total/sum of allocating a TA to an unwilling section
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
@@ -116,7 +118,7 @@ def unwilling(L, sections_array):
     return unwilling_total
 
 
-def unpreferred(L, preference_array):
+def unpreferred(L, preference_array=None):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
@@ -381,8 +383,7 @@ def main():
     E = Evo()
 
     # Register some objectives
-
-    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 1])
+    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 2])
     E.add_fitness_criteria("conflicts", conflicts, daytime_array=sections[:, 2])
     E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
     E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
@@ -405,21 +406,15 @@ def main():
     #       max amount of labs, preference, and times for each section
     #
 
-    from_tas = tas[:, 2:19]
-    from_sections = sections[:, 2:7]
 
     # create an initial random solution (np array 17 x 43)
-    rnd_sol = np.array([rnd.randint(0, 1) for _ in range(len(sections) * len(tas))])
+    L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. /3, 2. /3])
+    # print(L)
+    # print(len(sections))
+    # print(len(tas))
+    E.add_solution(L)
 
-    # append essential section and maximum lab data
-    expanded_sol = np.append(rnd_sol, from_sections)
-    expanded_sol = np.append(expanded_sol, from_tas)
 
-    # get just the solution
-    # solution = expanded_sol[:731]
-    # rest = expanded_sol[731:]
-
-    E.add_solution(expanded_sol)
 
 
 # E.add_solution(L)
