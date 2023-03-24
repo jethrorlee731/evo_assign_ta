@@ -30,7 +30,8 @@ class Evo:
         # storing a fitness function by its name in our framework
         """ Registering an objective with the Evo framework
         name - The name of the objective (string)
-        f - The objective function: f(solution)--> a number """
+        f - The objective function: f(solution)--> a number
+        **kwargs - The inputs for the objective function """
         self.fitness[name] = f
 
     # k = number of solutions the agent operates on

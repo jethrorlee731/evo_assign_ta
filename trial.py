@@ -11,6 +11,8 @@ def overallocation(L):
     """ Sum of the overallocation penalty over all TAs
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
+        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
+
     Return:
         oa_penalty (int): total overallocation penalty across all tas
     """
@@ -81,6 +83,7 @@ def conflicts(L):
             total_conflict += 1
 
 
+
 def undersupport(L):
     """ Total/sum of undersupport penalty over all TAs
     Args:
@@ -111,7 +114,7 @@ def undersupport(L):
 
     return total_undersupport
 
-
+# =-------=-=------------------======-----------------
 def unwilling(L, sections_array):
     """ Total/sum of allocating a TA to an unwilling section
     Args:
@@ -402,11 +405,11 @@ def main():
 
     # Register some objectives
 
-    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 1])
-    E.add_fitness_criteria("conflicts", conflicts, daytime_array=sections[:, 2])
-    E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
-    E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
-    E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
+    E.add_fitness_criteria("overallocation", overallocation)
+    E.add_fitness_criteria("conflicts", conflicts)
+    E.add_fitness_criteria("undersupport", undersupport)
+    # E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
+    # E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
 
     # Register some agents
     # E.add_agent("swapper", swapper, k=1)
@@ -431,13 +434,32 @@ def main():
     # create an initial random solution (np array 17 x 43)
     rnd_sol = np.array([rnd.randint(0, 1) for _ in range(len(sections) * len(tas))])
 
-    # append essential section and maximum lab data
+    # # append essential section and maximum lab data
     expanded_sol = np.append(rnd_sol, from_sections)
     expanded_sol = np.append(expanded_sol, from_tas)
-
-    # get just the solution
+    #
+    # # get just the solution
     # solution = expanded_sol[:731]
     # rest = expanded_sol[731:]
+    #
+    # # to get the maximum labs tas are willing to support & remove from the total array
+    # # aka exp_sol[816:864]
+    # # 731 vals are
+    # ta_data = rest[85:, :].reshape(len(tas), len(sections))
+    # section_data = rest[:85, :].reshape(len(sections), 5)
+    #
+    # max_labs = [item[0] for item in ta_data]
+    # preference_array = ta_data
+    # daytime_array = [item[0] for item in section_data]
+    #
+    #
+    # # to get the minimum number of tas for each section
+
+    # rnd_sol = np.array([rnd.randint(0, 1) for _ in range(len(sections) * len(tas))]).reshape(len(tas), len(sections))
+
+    # df = pd.DataFrame(rnd_sol)
+    # result = df.append(from_sections)
+
 
     E.add_solution(expanded_sol)
 

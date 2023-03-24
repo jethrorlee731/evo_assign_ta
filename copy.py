@@ -7,33 +7,27 @@ from collections import Counter, defaultdict
 from collections import defaultdict
 
 
-def overallocation(L):
+def overallocation(L, ta_array):
     """ Sum of the overallocation penalty over all TAs
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
+        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
+
     Return:
         oa_penalty (int): total overallocation penalty across all tas
     """
-    # separate the solution from the other data
-    solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
-    rest = L[731:]
-
-    # get the maximum labs tas are willing to support & remove from the total array
-    ta_data = rest[85:].reshape(43, 17)
-    max_labs = list(map(int, [item[0] for item in ta_data]))
-
     # initialize empty list and variables
     sum_total = []
     oa_penalty = 0
 
-    for row in solution:
+    for row in L:
         # get the sum of each row
         total = sum(row)
         # add it to the list
         sum_total.append(total)
 
     # convert 1d array to a list
-    ta_array = list(max_labs)
+    ta_array = list(ta_array)
 
     for a, b in zip(sum_total, ta_array):
         if a > b:
@@ -44,32 +38,25 @@ def overallocation(L):
     return oa_penalty
 
 
-def conflicts(L):
+def conflicts(L, daytime_array):
     """ Number of TAs with one or more time conflicts
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
+        daytime_array (numpy array): 1d array of the times for each of the 17 sections
     Return:
         total_conflict (int): number of tas with one or more time conflict
     """
-    # separate the solution from the other data
-    solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
-    rest = L[731:]
-    section_data = rest[:85].reshape(17, 5)
-
-    # 1d array of the times for each of the 17 sections
-    daytime_array = [item[0] for item in section_data]
-
     # initialize variables and default dictionaries
     total_conflict = 0
     solutions_dict = defaultdict(int)
     day_dict = defaultdict(list)
 
     # numpy array containing index of where 1 is present in the L array
-    solutions = np.argwhere(solution == 1)
+    solutions = np.argwhere(L == 1)
 
     # create a dictionary with key: ta, value: section
-    for sol in solutions:
-        solutions_dict[sol[0]] = sol[1]
+    for solution in solutions:
+        solutions_dict[solution[0]] = solution[1]
 
     for key, value in solutions_dict.items():
         # append to a new dictionary with key being the ta, value being the section time
@@ -81,7 +68,7 @@ def conflicts(L):
             total_conflict += 1
 
 
-def undersupport(L):
+def undersupport(L, sections_array):
     """ Total/sum of undersupport penalty over all TAs
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
@@ -89,18 +76,11 @@ def undersupport(L):
     Return:
         total_undersupport (int): total undersupport penalty over all tas
     """
-    # separate the solution from the other data
-    solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
-    rest = L[731:]
-
-    section_data = rest[:85].reshape(17, 5)
-    sections_array = np.array(list(map(int, [item[-1] for item in section_data])))
-
     # initialize total for undersupport
     total_undersupport = 0
 
     # sum up each column of the array - number of tas for each column
-    ta_num = list(map(sum, zip(*solution)))
+    ta_num = list(map(sum, zip(*L)))
 
     sections_array = list(sections_array)
 
