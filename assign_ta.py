@@ -374,7 +374,7 @@ def main():
 
     # load the CSV file containing information about the sections and store the values into a numpy array
     sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
-    # print(sections)
+    print(sections)
 
     # load the CSV file containing information about the TAs and store the values into an array
     tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
