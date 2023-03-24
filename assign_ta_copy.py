@@ -388,17 +388,26 @@ def main():
     tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
     # print(tas)
 
+    # create an initial random solution (np array 17 x 43)
+    L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. / 3, 2. / 3])
+    # print(L)
+    # print(len(sections))
+    # print(len(tas))
     E = Evo()
+    E.add_solution(L)
+    print(E)
 
     # Register some objectives
-    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 2])
-    E.add_fitness_criteria("conflicts", conflicts, daytime_array=sections[:, 2])
-    E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
-    E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
-    E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
+    E.add_fitness_criteria("overallocation", overallocation, L=L, ta_array=tas[:, 2])
+    E.add_fitness_criteria("conflicts", conflicts, L=L, daytime_array=sections[:, 2])
+    E.add_fitness_criteria("undersupport", undersupport, L=L, sections_array=sections[:, 6])
+    E.add_fitness_criteria("unwilling", unwilling, L=L, sections_array=sections[1:, 3:])
+    E.add_fitness_criteria("unpreferred", unpreferred, L=L, sections_array=sections[1:, 3:])
 
     # Register some agents
-    # E.add_agent("swapper", swapper, k=1)
+    E.add_agent("swapper", swapper, k=1)
+    E.add_agent("swapper", swapper, k=1)
+    E.add_agent("swapper", swapper, k=1)
     #
     # Seed the population with an initial random solution (numpy array of 17 columns by 43 rows as there are 17
     # # sections and 43 tas)
@@ -415,12 +424,7 @@ def main():
     #
 
 
-    # create an initial random solution (np array 17 x 43)
-    L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. /3, 2. /3])
-    # print(L)
-    # print(len(sections))
-    # print(len(tas))
-    E.add_solution(L)
+
 
 
 
@@ -428,11 +432,11 @@ def main():
 # E.add_solution(L)
 # print(E)
 #
-# # Run the evolver
-# E.evolve(1000000, 100, 10000)
-#
-# # Print final results
-# print(E)
+    #Run the evolver
+    E.evolve(1000000, 100, 10000)
+
+    # Print final results
+    print(E)
 
 
 if __name__ == '__main__':
