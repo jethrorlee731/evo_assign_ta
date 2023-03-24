@@ -3,7 +3,6 @@ import pandas as pd
 from evo import Evo
 import random as rnd
 import numpy as np
-from collections import Counter, defaultdict
 from collections import defaultdict
 
 

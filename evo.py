@@ -1,5 +1,5 @@
 """
-Jethro R. Lee and Michelle Wang
+JC Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
 DS3500
 HW4: An Evolutionary Approach to TA/Lab Assignments
 March 27, 2023
