@@ -54,6 +54,6 @@ def test_unpreferred(evo):
     """
     Check that unpreferred function is working correctly
     """
-    assert evo.unpreferred(test1, sections[1:, 3:])
-    assert evo.unpreferred(test2, sections[1:, 3:])
-    assert evo.unpreferred(test3, sections[1:, 3:])
+    assert evo.unpreferred(test1, sections[1:, 3:]) == 15
+    assert evo.unpreferred(test2, sections[1:, 3:]) == 19
+    assert evo.unpreferred(test3, sections[1:, 3:]) == 10
