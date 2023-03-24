@@ -27,17 +27,18 @@ def overallocation(L, ta_array=None):
         # add it to the list
         sum_total.append(total)
 
-    # convert 1d array to a list
-    ta_array = list(ta_array)
-    # print(ta_array)
+    if ta_array is not None:
+        # convert 1d array to a list
+        ta_array = list(ta_array)
+        # print(ta_array)
 
-    for a, b in zip(sum_total, ta_array):
-        if a > b:
-            # add to overallocation penalty the difference of how much was actually assigned and what
-            # the ta said their max was
-            oa_penalty += (a - b)
+        for a, b in zip(sum_total, ta_array):
+            if a > b:
+                # add to overallocation penalty the difference of how much was actually assigned and what
+                # the ta said their max was
+                oa_penalty += (a - b)
 
-    return oa_penalty
+        return oa_penalty
 
 
 def conflicts(L, daytime_array=None):
@@ -60,14 +61,17 @@ def conflicts(L, daytime_array=None):
     for solution in solutions:
         solutions_dict[solution[0]] = solution[1]
 
-    for key, value in solutions_dict.items():
-        # append to a new dictionary with key being the ta, value being the section time
-        day_dict[key].append(daytime_array[value])
+    if daytime_array is not None:
+        for key, value in solutions_dict.items():
+            # append to a new dictionary with key being the ta, value being the section time
+            day_dict[key].append(daytime_array[value])
 
-    for value in day_dict.values():
-        if len(set(value)) != len(value):
-            # there is a ta assigned to the same lab time over more than one section - add one to the counter
-            total_conflict += 1
+        for value in day_dict.values():
+            if len(set(value)) != len(value):
+                # there is a ta assigned to the same lab time over more than one section - add one to the counter
+                total_conflict += 1
+
+        return total_conflict
 
 
 def undersupport(L, sections_array=None):
@@ -84,14 +88,15 @@ def undersupport(L, sections_array=None):
     # sum up each column of the array - number of tas for each column
     ta_num = list(map(sum, zip(*L)))
 
-    sections_array = list(sections_array)
+    if sections_array is not None:
+        sections_array = list(sections_array)
 
-    for a, b in zip(ta_num, sections_array):
-        if a < b:
-            # add to total for undersupport
-            total_undersupport += (b - a)
+        for a, b in zip(ta_num, sections_array):
+            if a < b:
+                # add to total for undersupport
+                total_undersupport += (b - a)
 
-    return total_undersupport
+        return total_undersupport
 
 
 def unwilling(L, sections_array=None):
@@ -108,14 +113,15 @@ def unwilling(L, sections_array=None):
     # https://stackoverflow.com/questions/44639976/zip-three-2-d-arrays-into-tuples-of-3
     # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
     # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
+    if sections_array is not None:
+        new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
 
-    for item in new_list:
-        if item[0] == 1 and item[1] == 'U':
-            # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
-            unwilling_total += 1
+        for item in new_list:
+            if item[0] == 1 and item[1] == 'U':
+                # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
+                unwilling_total += 1
 
-    return unwilling_total
+        return unwilling_total
 
 
 def unpreferred(L, preference_array=None):
@@ -131,14 +137,16 @@ def unpreferred(L, preference_array=None):
 
     # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
     # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, preference_array)).reshape(-1, 2)))
+    if preference_array is not None:
 
-    for item in new_list:
-        if item[0] == 1 and item[1] == 'W':
-            # increase the number of willing counter if the ta is assigned and they say they are willing for that
-            unpreferred_total += 1
+        new_list = list(map(tuple, np.dstack((L, preference_array)).reshape(-1, 2)))
 
-    return unpreferred_total
+        for item in new_list:
+            if item[0] == 1 and item[1] == 'W':
+                # increase the number of willing counter if the ta is assigned and they say they are willing for that
+                unpreferred_total += 1
+
+        return unpreferred_total
 
 
 def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
