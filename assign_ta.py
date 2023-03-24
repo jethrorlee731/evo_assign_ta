@@ -1,5 +1,4 @@
 import pandas as pd
-
 from evo import Evo
 import random as rnd
 import numpy as np
@@ -10,16 +9,18 @@ from collections import defaultdict
 def overallocation(L):
     """ Sum of the overallocation penalty over all TAs
     Args:
-        L (numpy array): 2d array with sections as columns and tas as rows
+        L (numpy array): 1d array containing section and TA assignments,
+            lab maximums for TAs, days & times for each section, minimum
+            TA number for each section, and preferences (unwilling, willing, preferred)
     Return:
         oa_penalty (int): total overallocation penalty across all tas
     """
-    # separate the solution from the other data
+    # separate the solution from the given array
     solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
     rest = L[731:]
 
     # get the maximum labs tas are willing to support & remove from the total array
-    ta_data = rest[85:].reshape(43, 17)
+    ta_data = rest[85:].reshape(43, 18)
     max_labs = list(map(int, [item[0] for item in ta_data]))
 
     # initialize empty list and variables
@@ -47,13 +48,17 @@ def overallocation(L):
 def conflicts(L):
     """ Number of TAs with one or more time conflicts
     Args:
-        L (numpy array): 2d array with sections as columns and tas as rows
+        L (numpy array): 1d array containing section and TA assignments,
+            lab maximums for TAs, days & times for each section, minimum
+            TA number for each section, and preferences (unwilling, willing, preferred)
     Return:
-        total_conflict (int): number of tas with one or more time conflict
+        total_conflict (int): number ot TAs with 1 or more time conflict
     """
-    # separate the solution from the other data
+    # separate the solution from the given array
     solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
     rest = L[731:]
+
+    # extract section-specific data from the array
     section_data = rest[:85].reshape(17, 5)
 
     # 1d array of the times for each of the 17 sections
@@ -80,21 +85,27 @@ def conflicts(L):
             # there is a ta assigned to the same lab time over more than one section - add one to the counter
             total_conflict += 1
 
+    return total_conflict
+
 
 def undersupport(L):
     """ Total/sum of undersupport penalty over all TAs
     Args:
-        L (numpy array): 2d array with sections as columns and tas as rows
-        sections_array (numpy array): 1d array of minimum ta number for each section
+        L (numpy array): 1d array containing section and TA assignments,
+            lab maximums for TAs, days & times for each section, minimum
+            TA number for each section, and preferences (unwilling, willing, preferred)
     Return:
         total_undersupport (int): total undersupport penalty over all tas
     """
-    # separate the solution from the other data
+    # separate the solution from the given array
     solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
     rest = L[731:]
 
+    # extract the section-specific data from the given array
     section_data = rest[:85].reshape(17, 5)
-    sections_array = np.array(list(map(int, [item[-1] for item in section_data])))
+
+    # minimum number of TAs for each section
+    min_tas = np.array(list(map(int, [item[-1] for item in section_data])))
 
     # initialize total for undersupport
     total_undersupport = 0
@@ -102,7 +113,7 @@ def undersupport(L):
     # sum up each column of the array - number of tas for each column
     ta_num = list(map(sum, zip(*solution)))
 
-    sections_array = list(sections_array)
+    sections_array = list(min_tas)
 
     for a, b in zip(ta_num, sections_array):
         if a < int(b):
@@ -112,21 +123,32 @@ def undersupport(L):
     return total_undersupport
 
 
-def unwilling(L, sections_array):
+def unwilling(L):
     """ Total/sum of allocating a TA to an unwilling section
     Args:
-        L (numpy array): 2d array with sections as columns and tas as rows
-        sections_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
+        L (numpy array): 1d array containing section and TA assignments,
+            lab maximums for TAs, days & times for each section, minimum
+            TA number for each section, and preferences (unwilling, willing, preferred)
     Return:
         unwilling_total (int): total of allocation a ta to an unwilling section
     """
+    # separate the solution from the given array
+    solution = L[:731].reshape(43, 17)
+    rest = L[731:]
+
+    # extract the ta-specific data from the given array
+    ta_data = rest[85:].reshape(43, 18)
+
+    # create 2d array of whether the ta is unwilling, willing, or preferred for each section
+    preference_array = np.array([item[1:] for item in ta_data])
+
     # initialize counter for number of unwilling
     unwilling_total = 0
 
     # https://stackoverflow.com/questions/44639976/zip-three-2-d-arrays-into-tuples-of-3
     # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
     # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
+    new_list = list(map(tuple, np.dstack((solution, preference_array)).reshape(-1, 2)))
 
     for item in new_list:
         if item[0] == 1 and item[1] == 'U':
@@ -136,23 +158,34 @@ def unwilling(L, sections_array):
     return unwilling_total
 
 
-def unpreferred(L, preference_array):
+def unpreferred(L):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
     Args:
-        L (numpy array): 2d array with sections as columns and tas as rows
-        preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
+        L (numpy array): 1d array containing section and TA assignments,
+            lab maximums for TAs, days & times for each section, minimum
+            TA number for each section, and preferences (unwilling, willing, preferred)
     Returns:
         unpreferred_total (int): total of allocation a ta to a willing section
     """
+    # separate the solution from the given array
+    solution = L[:731].reshape(43, 17)
+    rest = L[731:]
+
+    # extract the ta-specific data from the given array
+    ta_data = rest[85:].reshape(43, 18)
+
+    # create 2d array of whether the ta is unwilling, willing, or preferred for each section
+    preference_array = np.array([item[1:] for item in ta_data])
+
     # initialize counter for number of unwilling
     unpreferred_total = 0
 
     # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
-    # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, preference_array)).reshape(-1, 2)))
+    # first element being from solution and the second element being from preference_array
+    new_list = list(map(tuple, np.dstack((solution, preference_array)).reshape(-1, 2)))
 
     for item in new_list:
-        if item[0] == 1 and item[1] == 'W':
+        if item[0] == '1' and item[1] == 'W':
             # increase the number of willing counter if the ta is assigned and they say they are willing for that
             unpreferred_total += 1
 
@@ -410,12 +443,12 @@ def main():
 
     # Register some objectives
 
-    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 1])
-    E.add_fitness_criteria("overallocation", overallocation, ta_array=tas[:, 2])
-    E.add_fitness_criteria("conflicts", conflicts, daytime_array=sections[:, 2])
-    E.add_fitness_criteria("undersupport", undersupport, sections_array=sections[:, 6])
-    E.add_fitness_criteria("unwilling", unwilling, sections_array=sections[1:, 3:])
-    E.add_fitness_criteria("unpreferred", unpreferred, sections_array=sections[1:, 3:])
+    E.add_fitness_criteria("overallocation", overallocation)
+    E.add_fitness_criteria("overallocation", overallocation)
+    E.add_fitness_criteria("conflicts", conflicts)
+    E.add_fitness_criteria("undersupport", undersupport)
+    E.add_fitness_criteria("unwilling", unwilling)
+    E.add_fitness_criteria("unpreferred", unpreferred)
 
     # Register some agents
     # E.add_agent("swapper", swapper, k=1)
@@ -434,7 +467,7 @@ def main():
     #       max amount of labs, preference, and times for each section
     #
 
-    from_tas = tas[:, 2:19]
+    from_tas = tas[:, 2:20]
     from_sections = sections[:, 2:7]
 
     # create an initial random solution (np array 17 x 43)
