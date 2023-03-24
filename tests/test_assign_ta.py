@@ -9,9 +9,9 @@ import numpy as np
 sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
 tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
 
-test1 = np.loadtxt('test1.csv', delimiter=',', dtype=str)
-test2 = np.loadtxt('test2.csv', delimiter=',', dtype=str)
-test3 = np.loadtxt('test3.csv', delimiter=',', dtype=str)
+test1 = np.loadtxt('test1.csv', delimiter=',', dtype=int)
+test2 = np.loadtxt('test2.csv', delimiter=',', dtype=int)
+test3 = np.loadtxt('test3.csv', delimiter=',', dtype=int)
 
 @pytest.fixture
 # function that creates the object

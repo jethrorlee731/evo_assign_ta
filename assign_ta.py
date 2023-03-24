@@ -28,10 +28,10 @@ def overallocation(L, ta_array):
     ta_array = list(ta_array)
 
     for a, b in zip(sum_total, ta_array):
-        if int(a) > int(b):
+        if a > int(b):
             # add to overallocation penalty the difference of how much was actually assigned and what
             # the ta said their max was
-            oa_penalty += (int(a) - int(b))
+            oa_penalty += (a - int(b))
 
     return oa_penalty
 
@@ -50,7 +50,7 @@ def conflicts(L, daytime_array):
     day_dict = defaultdict(list)
 
     # numpy array containing index of where 1 is present in the L array
-    solutions = np.argwhere(L == '1')
+    solutions = np.argwhere(L == 1)
 
     # create a dictionary with key: ta, value: section
     for solution in solutions:
@@ -83,9 +83,9 @@ def undersupport(L, sections_array):
     sections_array = list(sections_array)
 
     for a, b in zip(ta_num, sections_array):
-        if int(a) < int(b):
+        if a < int(b):
             # add to total for undersupport
-            total_undersupport += (int(b) - int(a))
+            total_undersupport += (int(b) - a)
 
     return total_undersupport
 
@@ -107,7 +107,7 @@ def unwilling(L, sections_array):
     new_list = list(map(tuple, np.dstack((L, sections_array)).reshape(-1, 2)))
 
     for item in new_list:
-        if item[0] == '1' and item[1] == 'U':
+        if item[0] == 1 and item[1] == 'U':
             # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
             unwilling_total += 1
 
@@ -130,7 +130,7 @@ def unpreferred(L, preference_array):
     new_list = list(map(tuple, np.dstack((L, preference_array)).reshape(-1, 2)))
 
     for item in new_list:
-        if item[0] == '1' and item[1] == 'W':
+        if item[0] == 1 and item[1] == 'W':
             # increase the number of willing counter if the ta is assigned and they say they are willing for that
             unpreferred_total += 1
 
@@ -177,7 +177,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
     preferences = preference_array.tolist()
 
     # numpy array containing index of where 1 is present in the L array
-    solutions = np.argwhere(L == '1')
+    solutions = np.argwhere(L == 1)
 
     # create a dictionary with key: ta, value: section
     for solution in solutions:
@@ -219,7 +219,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
         # if there are candidate TAs available, choose one at random to be assigned to the lab
         if len(candidate_tas > 0):
             ta_to_be_assigned = rnd.choice(candidate_tas)
-            L[ta_to_be_assigned, lab_to_receive_ta] = '1'
+            L[ta_to_be_assigned, lab_to_receive_ta] = 1
 
         else:
             # now focus on labs that have enough TAs
@@ -248,7 +248,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
             # if there are candidate TAs available, choose one at random to be assigned to the lab
             if len(candidate_tas > 0):
                 ta_to_be_assigned = rnd.choice(candidate_tas)
-                L[ta_to_be_assigned, lab_to_receive_ta] = '1'
+                L[ta_to_be_assigned, lab_to_receive_ta] = 1
 
             else:
                 # don't assign a TA to the lab section to be assigned a new TA if no candidates are available
@@ -318,7 +318,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
             # if the TA is assigned too many labs and is only willing to work for the section to lose a TA, remove them
             # from that section
             for a, b in zip(lab_total, ta_array):
-                if int(a) > int(b) and preferences[j][i] == 'W':
+                if a > int(b) and preferences[j][i] == 'W':
                     unassigned_tas.append(j)
 
         # if there are candidate TAs available to be removed, unassigned each one from the lab to lose a TA
@@ -326,7 +326,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
             for ta in unassigned_tas:
                 # only remove TAs from sections they were already assigned to
                 if int(L[ta, lab_to_lose_ta]) >= 1:
-                    L[ta, lab_to_lose_ta] = '0'
+                    L[ta, lab_to_lose_ta] = 0
 
     return L
 
@@ -374,12 +374,18 @@ def main():
 
     # load the CSV file containing information about the sections and store the values into a numpy array
     sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
-    print(sections)
+    # print(sections)
 
     # load the CSV file containing information about the TAs and store the values into an array
     tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
     # print(tas)
 
+    # ONLY NEED TO LOAD THESE FILES IN THE TEST PY FILE?
+    # # load test csv files into numpy array with integers
+    # test1 = np.loadtxt('test1.csv', delimiter=',', dtype=int)
+    # test2 = np.loadtxt('test2.csv', delimiter=',', dtype=int)
+    # test3 = np.loadtxt('test3.csv', delimiter=',', dtype=int)
+    #
     E = Evo()
 
     # Register some objectives
