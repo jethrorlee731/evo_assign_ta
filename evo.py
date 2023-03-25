@@ -9,6 +9,7 @@ import random as rnd
 import copy
 from functools import reduce
 import time
+import pickle
 
 
 class Evo:
@@ -31,8 +32,8 @@ class Evo:
         """ Registering an objective with the Evo framework
         name - The name of the objective (string)
         f - The objective function: f(solution)--> a number
-        **kwargs - The inputs for the objective function """
         self.fitness[name] = f
+        """
 
     # k = number of solutions the agent operates on
     # the name is used for logging to track how long the agent is running and which ones are producing the best results
@@ -67,6 +68,7 @@ class Evo:
         eval = tuple([(name, f(sol)) for name, f in self.fitness.items()])
 
         # adding the new solution with its associated evaluation to the dictionary
+        print('eval', eval)
         self.pop[eval] = sol
 
     def run_agent(self, name):
@@ -81,12 +83,13 @@ class Evo:
         self.add_solution(new_solution)
 
     # ADD A 10 MINUTE TIMER TO THIS FUNCTION
-    def evolve(self, n=1, dom=100, status=100, time_limit=600):
+    def evolve(self, n=1, dom=100, status=100, sync=1000, time_limit=600):
         """ To run n random agents against the population
         Args:
             n (int) - # of agent invocations
             dom (int) - # of iterations between discarding the dominated solutions
             status (int) - # of iterations between the last shown solution and the most recently shown one
+            sync - # iterations between saving population to disk
             time_limit (int) - # of seconds the optimizer runs for
 
         Citation for time limit functionality:
@@ -114,8 +117,25 @@ class Evo:
                     print("Population Size: ", self.size())
                     print(self)
 
+                if i % sync == 0:
+                    try:
+                        with open('solutions.dat', 'rb') as file:
+
+                            # load saved population into a dictionary object
+                            loaded = pickle.load(file)
+
+                            # merge loaded solutions into my population
+                            for eval, sol in loaded.items():
+                                self.pop[eval] = sol
+                    except Exception as e:
+                        print(e)
+
                 # Clean up population
                 self.remove_dominated()
+
+                # resave the non-dominated solutions back to the file
+                with open('solutions.dat', 'wb') as file:
+                    pickle.dump(self.pop, file)
 
     @staticmethod
     def _dominates(p, q):

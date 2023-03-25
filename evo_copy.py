@@ -32,6 +32,7 @@ class Evo:
         name - The name of the objective (string)
         f - The objective function: f(solution)--> a number
         **kwargs - The inputs for the objective function """
+        print(kwargs)
         self.fitness[name] = (f, kwargs)
 
     # k = number of solutions the agent operates on
@@ -64,7 +65,7 @@ class Evo:
         # evaluating the function to every objective in the population
 
         # applying every registered function to a number, returning a value each time
-        eval = tuple([(name, (f(sol), kwargs)) for name, (f, kwargs) in self.fitness.items()])
+        eval = tuple([(name, (f(sol, **kwargs))) for name, (f, kwargs) in self.fitness.items()])
 
         # adding the new solution with its associated evaluation to the dictionary
         self.pop[eval] = sol
