@@ -471,7 +471,7 @@ def main():
     from_sections = sections[:, 2:7]
 
     # create an initial random solution (np array 17 x 43)
-    rnd_sol = np.array([rnd.randint(0, 1) for _ in range(len(sections) * len(tas))])
+    rnd_sol = np.random.choice([0, 1], size=(len(tas), len(sections)), p=[1. / 3, 2. / 3])
 
     # append essential section and maximum lab data
     expanded_sol = np.append(rnd_sol, from_sections)

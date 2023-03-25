@@ -389,7 +389,7 @@ def main():
     # print(tas)
 
     # create an initial random solution (np array 17 x 43)
-    L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. / 3, 2. / 3])
+    L = np.random.choice([0, 1], size=(len(tas), len(sections)), p=[1. / 3, 2. / 3])
     # print(L)
     # print(len(sections))
     # print(len(tas))
