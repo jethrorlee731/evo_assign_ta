@@ -21,23 +21,29 @@ def overallocation(L, ta_array=None):
     oa_penalty = 0
     lab_totals = []
 
-    # calculate how many labs each TA is assigned to
-    for assignments in L:
-        lab_totals.append(sum(assignments))
+    print(L)
+    #
+    # # calculate how many labs each TA is assigned to
+    for sol in L:
+        print(sol)
 
-    if ta_array is not None:
-        # convert 1d array to a list
-        max_labs = [int(lab_num) for lab_num in ta_array]
-        # WEIRD ERROR - MAX_LABS KEEPS CONVERTING BACK INTO AN ARRAY, CAUSING ISSUES
-        print('lab_tot', lab_totals)
-        print('max_lab', max_labs)
-        for assigned, limit in list(zip(lab_totals, max_labs)):
-            if assigned > limit:
-                # add to overallocation penalty the difference of how much was actually assigned and what
-                # the ta said their max was
-                oa_penalty += (assigned - limit)
-
-        return oa_penalty
+    # for assignments in L:
+    #     lab_totals.append(sum(assignments))
+    #     print(lab_totals)
+    # print('lab_tot1', len(lab_totals))
+    # if ta_array is not None:
+    #     # convert 1d array to a list of integers
+    #     max_labs = [int(lab_num) for lab_num in ta_array]
+    #     # WEIRD ERROR - MAX_LABS KEEPS CONVERTING BACK INTO AN ARRAY, CAUSING ISSUES
+    #     print('lab_tot', len(lab_totals))
+    #     print('max_lab', len(max_labs))
+    #     for assigned, limit in list(zip(lab_totals, max_labs)):
+    #         if assigned > limit:
+    #             # add to overallocation penalty the difference of how much was actually assigned and what
+    #             # the ta said their max was
+    #             oa_penalty += (assigned - limit)
+    #
+    #     return oa_penalty
 
 
 def conflicts(L, daytime_array=None):
@@ -404,8 +410,8 @@ def main():
     E.add_agent("swapper", swapper, k=1)
     E.add_agent("swapper", swapper, k=1)
 
-    # Seed the population with an initial random solution (numpy array of 43 rows by 17 columns as there are 43 TAs and
-    # 17 sections)
+    # Seed the population with an initial random solution (numpy array of 43 rows by 17 columns as there are 17 sections
+    # and 43 tas)
 
     # 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
     L = np.random.choice([0, 1], size=(len(tas), len(sections)), p=[1. / 3, 2. / 3])
@@ -415,7 +421,7 @@ def main():
     E.evolve(1000000, 100, 10000)
 
     # Print final results
-    print('Final Results:', E)
+    # print('Final Results:', E)
 
 
 if __name__ == '__main__':
