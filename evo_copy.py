@@ -8,6 +8,7 @@ March 27, 2023
 import random as rnd
 import copy
 from functools import reduce
+import pickle
 import time
 
 
@@ -32,12 +33,8 @@ class Evo:
         name - The name of the objective (string)
         f - The objective function: f(solution)--> a number
         **kwargs - The inputs for the objective function """
-        # print(kwargs)
         self.fitness[name] = (f, kwargs)
 
-    # k = number of solutions the agent operates on
-    # the name is used for logging to track how long the agent is running and which ones are producing the best results
-    # operator takes solutions in, doesn't modify the solutions themselves
     def add_agent(self, name, op, k=1):
         """ Registering an agent with the Evo framework
         name - The name of the agent
@@ -54,14 +51,15 @@ class Evo:
             return []
         else:
             popvals = tuple(self.pop.values())
-            # we are using copies because we don't want to change the original solutions (similar to reproduction)
+            # we are using deep copies because we don't want to change the original solutions (similar to reproduction)
             # otherwise, so many solutions would get altered at once, leading to just one solution
             return [copy.deepcopy(rnd.choice(popvals)) for _ in range(k)]
 
-    # when the agent runs, we will produce a new solution that needs to be added to the population
     def add_solution(self, sol):
         """ Add a new solution to the population """
-        # insert the name of the function and the application of that function to the inputted solution as a tuple
+        # insert the name of the function, any optional parameters, and the application of that function to the
+        # inputted solution as a tuple
+
         # evaluating the function to every objective in the population
 
         # applying every registered function to a number, returning a value each time
@@ -81,21 +79,18 @@ class Evo:
         new_solution = op(picks)
         self.add_solution(new_solution)
 
-    # ADD A 10 MINUTE TIMER TO THIS FUNCTION
-    def evolve(self, n=1, dom=100, status=100, time_limit=600):
+    def evolve(self, n=1, dom=100, status=100, sync =1000, time_limit=600):
         """ To run n random agents against the population
         Args:
             n (int) - # of agent invocations
             dom (int) - # of iterations between discarding the dominated solutions
             status (int) - # of iterations between the last shown solution and the most recently shown one
+            sync (int) - # of iterations between printing current population to the screen
             time_limit (int) - # of seconds the optimizer runs for
 
         Citation for time limit functionality:
         https://stackoverflow.com/questions/2831775/running-a-python-script-for-a-user-specified-amount-of-time
         """
-        # dom determines how frequently we throw out the bad solutions (default is every 100 solutions,
-        # but this value may not be the best)
-
         # retrieve the time this function started running
         start_time = time.time()
 
@@ -117,6 +112,23 @@ class Evo:
 
                 # Clean up population
                 self.remove_dominated()
+
+                # resave the non-dominated solutions back to the file
+                with open('solutions.dat', 'wb') as file:
+                    pickle.dump(self.pop, file)
+
+                if i % sync == 0:
+                    try:
+                        with open('solutions.dat', 'rb') as file:
+
+                            # load saved population into a dictionary object
+                            loaded = pickle.load(file)
+
+                            # merge loaded solutions into my population
+                            for eval, sol in loaded.items():
+                                self.pop[eval] = sol
+                    except Exception as e:
+                        print(e)
 
     @staticmethod
     def _dominates(p, q):

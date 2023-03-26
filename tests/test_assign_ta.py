@@ -13,10 +13,12 @@ test1 = np.loadtxt('test1.csv', delimiter=',', dtype=int)
 test2 = np.loadtxt('test2.csv', delimiter=',', dtype=int)
 test3 = np.loadtxt('test3.csv', delimiter=',', dtype=int)
 
+
 @pytest.fixture
 # function that creates the object
 def evo():
     return Evo()
+
 
 def test_overallocation(evo):
     """
@@ -26,6 +28,7 @@ def test_overallocation(evo):
     assert evo.overallocation(test2, tas[:, 2]) == 41
     assert evo.overallocation(test3, tas[:, 2]) == 23
 
+
 def test_conflicts(evo):
     """
     Check that conflicts function is working correctly
@@ -33,6 +36,7 @@ def test_conflicts(evo):
     assert evo.conflicts(test1, sections[:, 2]) == 8
     assert evo.conflicts(test2, sections[:, 2]) == 5
     assert evo.conflicts(test3, sections[:, 2]) == 2
+
 
 def test_undersupport(evo):
     """
@@ -42,6 +46,7 @@ def test_undersupport(evo):
     assert evo.undersupport(test2, sections[:, 6]) == 0
     assert evo.undersupport(test3, sections[:, 6]) == 7
 
+
 def test_unwilling(evo):
     """
     Check that unwilling function is working correctly
@@ -49,6 +54,7 @@ def test_unwilling(evo):
     assert evo.unwilling(test1, sections[1:, 3:]) == 53
     assert evo.unwilling(test2, sections[1:, 3:]) == 58
     assert evo.unwilling(test3, sections[1:, 3:]) == 43
+
 
 def test_unpreferred(evo):
     """
