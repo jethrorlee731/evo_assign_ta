@@ -3,44 +3,55 @@ import pandas as pd
 from evo import Evo
 
 
-sections = 'sections.csv'
-ta = 'tas.csv'
+# sections = 'sections.csv'
+# ta = 'tas.csv'
 
-sections_df = pd.read_csv(sections)
-tas = pd.read_csv(ta)
+# load the CSV file containing information about the sections and store the values into a numpy array
+sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+# load the CSV file containing information about the TAs and store the values into an array
+tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
+
+# Constant - list of max_assigned for the 43 tas
+MAX_ASSIGNED_LIST = list(map(int, [item[2] for item in tas]))
+
+# Constant - list of the times for each of the 17 sections
+DAYTIME_LIST = [item[2] for item in sections]
+
+# Constant - list of minimum amount of tas for each of the 17 sections
+MIN_TA_LIST = list(map(int, [item[-2] for item in sections]))
+
+# Constant - 2d array of ta preferences
+PREFERENCE_ARRAY = np.array([item[3:] for item in tas])
+
+# sections_df = pd.read_csv(sections)
+# tas = pd.read_csv(ta)
 arr = np.genfromtxt('test3.csv', delimiter=',', dtype=int)
 
-
 def overallocation(assignments):
-    max_assigned = list(tas.max_assigned)
     sums = list(assignments.sum(axis=1))
 
-    return int(sum([x - y for x,y in zip(sums, max_assigned) if x > y]))
+    return int(sum([x - y for x,y in zip(sums, MAX_ASSIGNED_LIST) if x > y]))
 
 
 def conflicts(assignments):
-    section_times = list(sections_df.daytime)
-    ta_sections = np.where(assignments == 1, section_times, assignments)
+    ta_sections = np.where(assignments == 1, DAYTIME_LIST, assignments)
     time_conflicts = list(np.array([len(row[row != '0']) != len(set(row[row != '0'])) for row in ta_sections])).count(True)
 
     return time_conflicts
 
 def undersupport(assignments):
-    min_ta = sections_df.min_ta
     sums = list(assignments.sum(axis=0))
 
-    return int(sum([y-x for x,y in zip(sums, min_ta) if y > x]))
+    return int(sum([y-x for x,y in zip(sums, MIN_TA_LIST) if y > x]))
 
 def unwilling(assignments):
-    preferences = tas.iloc[:, -17:].values
-    ta_sections = np.where(assignments == 1, preferences, 0)
+    ta_sections = np.where(assignments == 1, PREFERENCE_ARRAY, 0)
     count_u = np.count_nonzero(ta_sections == 'U', axis=1)
 
     return sum(list(count_u))
 
 def unpreferred(assignments):
-    preferences = tas.iloc[:, -17:].values
-    ta_sections = np.where(assignments == 1, preferences, 0)
+    ta_sections = np.where(assignments == 1, PREFERENCE_ARRAY, 0)
     count_W = np.count_nonzero(ta_sections == 'W', axis=1)
 
     return sum(list(count_W))
