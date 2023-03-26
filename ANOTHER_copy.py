@@ -17,6 +17,7 @@ MIN_TA_LIST = list(map(int, [item[-2] for item in sections]))
 # Constant - 2d array of ta preferences
 PREFERENCE_ARRAY = np.array([item[3:] for item in tas])
 
+
 def overallocation(L):
     """ Sum of the overallocation penalty over all TAs
     Args:
@@ -194,9 +195,10 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
     # can definitely break apart into functions
 
     for i in range(len(assigned_vs_needed)):
+        lab_to_receive_ta = i
+
         # Labs that need more TAs are prioritized first
         if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
-            lab_to_receive_ta = i
             # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
             # first element being from L and the second element being from sections_array
             for j in range(len(preferences)):
@@ -262,10 +264,30 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
 
 
 def _time_conflict(daytime_array, lab_to_lose_ta, day_dict, unassigned_tas, j):
+
     lab_time = daytime_array[lab_to_lose_ta]
-    for key, value in day_dict.items():
-        if key == j and lab_time in value:
-            unassigned_tas.append(j)
+
+    allkeys = list(day_dict.keys())
+    allvals = list(day_dict.values())
+
+    if allkeys[0] == j and lab_time in allvals[0]:
+        unassigned_tas.append(j)
+        del day_dict[allkeys[0]]
+
+    _time_conflict(daytime_array, lab_to_lose_ta, day_dict, unassigned_tas, j)
+
+
+def _unassign_tas(unassigned_tas, L, lab_to_lose_ta):
+    if len(unassigned_tas) > 0:
+
+        ta = unassigned_tas[0]
+
+        if L[ta, lab_to_lose_ta] >= 1:
+            L[ta, lab_to_lose_ta] = 0
+
+        _unassign_tas(unassigned_tas[1:], L, lab_to_lose_ta)
+
+
 
 def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
     """ Removing a TA(s) from a certain lab section
@@ -328,11 +350,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
                     unassigned_tas.append(j)
 
         # if there are candidate TAs available to be removed, unassigned each one from the lab to lose a TA
-        if len(unassigned_tas) > 0:
-            for ta in unassigned_tas:
-                # only remove TAs from sections they were already assigned to
-                if L[ta, lab_to_lose_ta] >= 1:
-                    L[ta, lab_to_lose_ta] = 0
+        _unassign_tas(unassigned_tas, L, lab_to_lose_ta)
 
     return L
 
@@ -636,7 +654,8 @@ def main():
     E.add_solution(rnd_sol)
 
     # Run the evolver
-    E.evolve(1000000, 100, 10000)
+    # E.evolve(1000000, 100, 10000)
+    E.evolve(10000, 100, 1000)
     #
     # # Print final results
     print(E)
