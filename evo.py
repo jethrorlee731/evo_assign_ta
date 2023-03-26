@@ -34,6 +34,7 @@ class Evo:
         f - The objective function: f(solution)--> a number
         self.fitness[name] = f
         """
+        self.fitness[name] = (f)
 
     # k = number of solutions the agent operates on
     # the name is used for logging to track how long the agent is running and which ones are producing the best results
@@ -68,11 +69,11 @@ class Evo:
         eval = tuple([(name, f(sol)) for name, f in self.fitness.items()])
 
         # adding the new solution with its associated evaluation to the dictionary
-        print('eval', eval)
         self.pop[eval] = sol
 
     def run_agent(self, name):
         """ Invoke an agent against the current population """
+
         # fetch the operator and the number of solutions that the agent needs to run
         op, k = self.agents[name]
 
@@ -156,9 +157,15 @@ class Evo:
         nds = reduce(Evo._reduce_nds, self.pop.keys(), self.pop.keys())
         self.pop = {k: self.pop[k] for k in nds}
 
+    def best_pop(self):
+        for eval, sol in self.pop.items():
+            sum(eval.values())
+
     def __str__(self):
         """ Output the solutions in the population """
         rslt = ""
         for eval, sol in self.pop.items():
             rslt += str(dict(eval)) + ":\t" + str(sol) + "\n"
+            # rslt += str(dict(eval)) + "\t" + "Penalties: " + str(sum(dict(eval).values()))
+
         return rslt

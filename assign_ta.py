@@ -6,8 +6,6 @@ from collections import Counter, defaultdict
 from collections import defaultdict
 
 
-
-
 def overallocation(L):
     """ Sum of the overallocation penalty over all TAs
     Args:
@@ -264,7 +262,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
 
         # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
         # instead
-        if len(candidate_tas == 0):
+        if len(candidate_tas) == 0:
             for j in range(len(preferences)):
                 # if a TA is willing to work in the lab to receive a TA, hasn't reached their section limit,
                 # and has no time conflicts with that section, they are a candidate TA for that section
@@ -275,7 +273,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
                             candidate_tas.append(j)
 
         # if there are candidate TAs available, choose one at random to be assigned to the lab
-        if len(candidate_tas > 0):
+        if len(candidate_tas) > 0:
             ta_to_be_assigned = rnd.choice(candidate_tas)
             L[ta_to_be_assigned, lab_to_receive_ta] = 1
 
@@ -293,7 +291,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
 
             # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
             # instead
-            if len(candidate_tas == 0):
+            if len(candidate_tas) == 0:
                 for j in range(len(preferences)):
                     # if a TA prefers to work in the lab to receive a TA, hasn't reached their section limit,
                     # and has no time conflicts with that section, they are a candidate TA for that section
@@ -304,7 +302,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
                                 candidate_tas.append(j)
 
             # if there are candidate TAs available, choose one at random to be assigned to the lab
-            if len(candidate_tas > 0):
+            if len(candidate_tas) > 0:
                 ta_to_be_assigned = rnd.choice(candidate_tas)
                 L[ta_to_be_assigned, lab_to_receive_ta] = 1
 
@@ -380,7 +378,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
                     unassigned_tas.append(j)
 
         # if there are candidate TAs available to be removed, unassigned each one from the lab to lose a TA
-        if len(unassigned_tas > 0):
+        if len(unassigned_tas) > 0:
             for ta in unassigned_tas:
                 # only remove TAs from sections they were already assigned to
                 if int(L[ta, lab_to_lose_ta]) >= 1:

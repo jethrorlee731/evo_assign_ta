@@ -67,7 +67,7 @@ def conflicts(L):
     # create a dictionary with key: ta, value: section
     for sol in solutions:
         solutions_dict[sol[0]] = sol[1]
-    print(solutions_dict.items())
+
     for key, value in solutions_dict.items():
         # append to a new dictionary with key being the ta, value being the section time
         day_dict[key].append(daytime_array[value])
@@ -224,7 +224,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
 
         # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
         # instead
-        if len(candidate_tas == 0):
+        if len(candidate_tas) == 0:
             for j in range(len(preferences)):
                 # if a TA is willing to work in the lab to receive a TA, hasn't reached their section limit,
                 # and has no time conflicts with that section, they are a candidate TA for that section
@@ -235,7 +235,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
                             candidate_tas.append(j)
 
         # if there are candidate TAs available, choose one at random to be assigned to the lab
-        if len(candidate_tas > 0):
+        if len(candidate_tas) > 0:
             ta_to_be_assigned = rnd.choice(candidate_tas)
             L[ta_to_be_assigned, lab_to_receive_ta] = 1
 
@@ -253,7 +253,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
 
             # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
             # instead
-            if len(candidate_tas == 0):
+            if len(candidate_tas) == 0:
                 for j in range(len(preferences)):
                     # if a TA prefers to work in the lab to receive a TA, hasn't reached their section limit,
                     # and has no time conflicts with that section, they are a candidate TA for that section
@@ -264,7 +264,7 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
                                 candidate_tas.append(j)
 
             # if there are candidate TAs available, choose one at random to be assigned to the lab
-            if len(candidate_tas > 0):
+            if len(candidate_tas) > 0:
                 ta_to_be_assigned = rnd.choice(candidate_tas)
                 L[ta_to_be_assigned, lab_to_receive_ta] = 1
 
@@ -274,6 +274,12 @@ def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
 
     return L
 
+
+def _time_conflict(daytime_array, lab_to_lose_ta, day_dict, unassigned_tas, j):
+    lab_time = daytime_array[lab_to_lose_ta]
+    for key, value in day_dict.items():
+        if key == j and lab_time in value:
+            unassigned_tas.append(j)
 
 def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
     """ Removing a TA(s) from a certain lab section
@@ -327,10 +333,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
                 unassigned_tas.append(j)
 
             # if a TA has a time conflict in a lab they are assigned to, remove them from that section
-            lab_time = daytime_array[lab_to_lose_ta]
-            for key, value in day_dict.items():
-                if key == j and lab_time in value:
-                    unassigned_tas.append(j)
+            _time_conflict(daytime_array, lab_to_lose_ta, day_dict, unassigned_tas, j)
 
             # if the TA is assigned too many labs and is only willing to work for the section to lose a TA, remove them
             # from that section
@@ -339,7 +342,7 @@ def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
                     unassigned_tas.append(j)
 
         # if there are candidate TAs available to be removed, unassigned each one from the lab to lose a TA
-        if len(unassigned_tas > 0):
+        if len(unassigned_tas) > 0:
             for ta in unassigned_tas:
                 # only remove TAs from sections they were already assigned to
                 if L[ta, lab_to_lose_ta] >= 1:
@@ -396,13 +399,12 @@ def main():
     # print(tas)
 
     # create an initial random solution (np array 17 x 43)
-    L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. / 3, 2. / 3])
+    # L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. / 3, 2. / 3])
     # print(L)
     # print(len(sections))
     # print(len(tas))
     E = Evo()
-    E.add_solution(L)
-    print(E)
+    # E.add_solution(L)
 
     # Register some objectives
     E.add_fitness_criteria("overallocation", overallocation)
@@ -412,8 +414,6 @@ def main():
     E.add_fitness_criteria("unpreferred", unpreferred)
 
     # Register some agents
-    E.add_agent("swapper", swapper, k=1)
-    E.add_agent("swapper", swapper, k=1)
     E.add_agent("swapper", swapper, k=1)
     #
     # Seed the population with an initial random solution (numpy array of 17 columns by 43 rows as there are 17
@@ -429,23 +429,20 @@ def main():
     # a starter solution with initialized sections: minimum TA number for each section,
     #       max amount of labs, preference, and times for each section
     #
-
     N = len(sections) * len(tas)
-
     # create an initial random solution (np array 17 x 43)
     rnd_sol = np.array([rnd.randint(0, 1) for _ in range(N)]).reshape(43, 17)
 
-
     E.add_solution(rnd_sol)
 
-# print(E)
+    # print(E)
 #
     #Run the evolver
     E.evolve(1000000, 100, 10000)
-
-    # Print final results
+    #
+    # # Print final results
     print(E)
-
+    #
 
 if __name__ == '__main__':
     main()
