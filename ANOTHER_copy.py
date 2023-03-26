@@ -141,6 +141,7 @@ def unpreferred(L):
 
     return unpreferred_total
 
+
 #####################################################################################################
 # JC'S AGENTS
 # def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
@@ -595,9 +596,9 @@ def remove_willing(solutions):
 #     pass
 #
 
-def swapper(solutions):
+def swap_assignment(solutions):
     """
-    Swap two random TA to lab assignments
+    Swap two random TA-lab assignments
     Args:
         solutions
     Returns:
@@ -605,11 +606,70 @@ def swapper(solutions):
     """
     L = solutions[0]
     row = rnd.randrange(len(L))
-    section = L[row]
-    i = rnd.randrange(0, len(section))
-    j = rnd.randrange(0, len(section))
+    ta_assignments = L[row, :]
+    i = rnd.randrange(0, len(ta_assignments))
+    j = rnd.randrange(0, len(ta_assignments))
 
-    section[i], section[j] = section[j], section[i]
+    ta_assignments[i], ta_assignments[j] = ta_assignments[j], ta_assignments[i]
+    return L
+
+
+def swap_labs(solutions):
+    """
+    Swap two random lab assignments to different TAs
+    Args:
+        solutions (list of numpy arrays): a list containing possible TA-lab assignments that could work
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
+    """
+    L = solutions[0]
+    print(L)
+    lab1 = int(rnd.randrange(L.shape[1]))
+    lab2 = lab1
+    while lab2 == lab1:
+        lab2 = int(rnd.randrange(L.shape[1]))
+
+    L[:, [lab1, lab2]] = L[:, [lab2, lab1]]
+
+    return L
+
+
+def swap_tas(solutions):
+    """
+    Swap two random TAs to different labs
+    Args:
+        solutions (list of numpy arrays): a list containing possible TA-lab assignments that could work
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
+    """
+    L = solutions[0]
+    print(L)
+    ta1 = int(rnd.randrange(L.shape[0]))
+    ta2 = ta1
+    while ta2 == ta1:
+        ta2 = int(rnd.randrange(L.shape[0]))
+
+    L[[ta1, ta2]] = L[[ta2, ta1]]
+
+    return L
+
+
+def opposites(solutions):
+    """
+    Create the complete opposite solution of the input
+    Args:
+        solutions (list of numpy arrays): a list containing possible TA-lab assignments that could work
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes ( all prior 0s
+                         are 1s and vice versa
+    """
+    L = solutions[0]
+    for row in L:
+        for ind, num in enumerate(row):
+            if num == 0:
+                row[ind] = 1
+            else:
+                row[ind] = 0
     return L
 
 
@@ -637,7 +697,15 @@ def main():
     E.add_fitness_criteria("unpreferred", unpreferred)
 
     # Register some agents
-    E.add_agent("swapper", swapper, k=1)
+    E.add_agent("swap_assignment", swap_assignment, k=1)
+    E.add_agent("add_ta_preferred", add_ta_preferred, k=1)
+    E.add_agent("add_ta_willing", add_ta_willing, k=1)
+    E.add_agent("add_ta_undersupport", add_ta_undersupport, k=1)
+    E.add_agent("remove_unpreferred", remove_unpreferred, k=1)
+    E.add_agent("remove_willing", remove_willing, k=1)
+    E.add_agent("swap_labs", swap_labs, k=1)
+    E.add_agent("swap_tas", swap_tas, k=1)
+    E.add_agent("opposites", opposites, k=1)
 
     N = len(sections) * len(tas)
     # Seed the population with an initial random solution (numpy array of 17 columns by 43 rows as there are 17
