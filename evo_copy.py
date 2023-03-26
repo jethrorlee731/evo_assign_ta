@@ -32,7 +32,7 @@ class Evo:
         name - The name of the objective (string)
         f - The objective function: f(solution)--> a number
         **kwargs - The inputs for the objective function """
-        print(kwargs)
+        # print(kwargs)
         self.fitness[name] = (f, kwargs)
 
     # k = number of solutions the agent operates on
