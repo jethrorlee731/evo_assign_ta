@@ -469,7 +469,10 @@ def main():
     E.evolve(10000, 100, 1000)
     #
     # # Print final results
-    print(E)
+    # print(E)
+    # move final dataframe into a csv file
+    E.to_csv('CJJCM_sol.csv', index=False)
+
 
 
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ import copy
 from functools import reduce
 import time
 import pickle
+import pandas as pd
 
 
 class Evo:
@@ -22,7 +23,8 @@ class Evo:
         self.fitness = {}  # name of fitness function (key) ==> objective function (value)
         # the agents don't necessarily take in only one solution as input
         self.agents = {}  # name of the agent (key) ==> (agent operator, # of input solutions) (value)
-
+        self.df = pd.DataFrame(columns=['groupname', 'overallocation', 'conflicts', 'undersupport',
+                                        'unwilling', 'unpreferred'])
     def size(self):
         """ The size of the solution population (helper function) """
         return len(self.pop)
@@ -114,8 +116,8 @@ class Evo:
     
                 if i % status == 0:  # print the population
                     self.remove_dominated()
-                    print("Iteration: ", i)
-                    print("Population Size: ", self.size())
+                    # print("Iteration: ", i)
+                    # print("Population Size: ", self.size())
                     print(self)
 
                 if i % sync == 0:
@@ -165,7 +167,12 @@ class Evo:
         """ Output the solutions in the population """
         rslt = ""
         for eval, sol in self.pop.items():
-            rslt += str(dict(eval)) + ":\t" + str(sol) + "\n"
-            # rslt += "Penalties: " + str(sum(dict(eval).values()))
+            rslt = dict(eval)
+            name_dict = {'groupname': 'CJJCM'}
+            combined_dict = {**name_dict, **rslt}
+            # dictionary of each of the columns and its values
+            rslt_df = pd.DataFrame([combined_dict])
+            # put the two dataframes together
+            self.df = pd.concat([self.df, rslt_df])
 
-        return rslt
+        return self.df.to_string(index=False)
