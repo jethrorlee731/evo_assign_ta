@@ -1,7 +1,6 @@
 from evo import Evo
 import random as rnd
 import numpy as np
-from collections import defaultdict
 
 # load the CSV file containing information about the sections and store the values into a numpy array
 sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
@@ -25,16 +24,11 @@ def overallocation(L):
     Return:
         oa_penalty (int): total overallocation penalty across all tas
     """
-    # initialize empty variable
-    oa_penalty = 0
+    # list of sum of each row (each ta)
+    sums = list(L.sum(axis=1))
 
-    # List of sum of each row
-    sum_total = list(np.sum(L, axis=1))
-
-    for a, b in zip(sum_total, MAX_ASSIGNED_LIST):
-        if a > b:
-            # add to overallocation penalty the difference of how much was actually assigned and the ta's max
-            oa_penalty += (a - b)
+    # add overallocation penalty if the number of assigned to the ta is more than their max
+    oa_penalty = int(sum([x - y for x,y in zip(sums, MAX_ASSIGNED_LIST) if x > y]))
 
     return oa_penalty
 
@@ -44,37 +38,15 @@ def conflicts(L):
     Args:
         L (numpy array): 2d array with sections as columns and tas as rows
     Return:
-        total_conflict (int): number of tas with one or more time conflict
+        time_conflicts (int): number of tas with one or more time conflict
     """
 
-    # initialize variables and default dictionaries
-    total_conflict = 0
-    solutions_dict = defaultdict(list)
-    day_dict = defaultdict(list)
+    ta_sections = np.where(L == 1, DAYTIME_LIST, L)
 
-    # numpy array containing index of where 1 is present in the L array
-    solutions = np.argwhere(L == 1)
+    # count number of conflicts if a ta is assigned to 2 sections at the same time
+    time_conflicts = list(np.array([len(row[row != '0']) != len(set(row[row != '0'])) for row in ta_sections])).count(True)
 
-    # create a dictionary with key: ta, value: section
-    for sol in solutions:
-        try:
-            solutions_dict[sol[0]].append(int(sol[1]))
-        except:
-            solutions_dict[sol[0]] = [int(sol[1])]
-
-    for key, value in solutions_dict.items():
-        for number in value:
-            number = DAYTIME_LIST[number]
-            # append to a new dictionary with key being the ta, value being the section times (list)
-            day_dict[key].append(number)
-
-    for value in day_dict.values():
-        if len(set(value)) != len(value):
-            # there is a ta assigned to the same lab time over more than one section - add one to the counter
-            total_conflict += 1
-
-    return total_conflict
-
+    return time_conflicts
 
 def undersupport(L):
     """ Total/sum of undersupport penalty over all TAs
@@ -83,19 +55,13 @@ def undersupport(L):
     Return:
         total_undersupport (int): total undersupport penalty over all tas
     """
-    # initialize total for undersupport
-    total_undersupport = 0
+    # sum up each column of the array - number of tas for each section
+    sums = list(L.sum(axis=0))
 
-    # sum up each column of the array - number of tas for each column
-    ta_num = list(map(sum, zip(*L)))
-
-    for a, b in zip(ta_num, MIN_TA_LIST):
-        if a < b:
-            # add to total for undersupport
-            total_undersupport += (b - a)
+    # sum up the total for unsupport - where there are less tas assigned to that section than required
+    total_undersupport = int(sum([y-x for x,y in zip(sums, MIN_TA_LIST) if y > x]))
 
     return total_undersupport
-
 
 def unwilling(L):
     """ Total/sum of allocating a TA to an unwilling section
@@ -104,21 +70,16 @@ def unwilling(L):
     Return:
         unwilling_total (int): total of allocation a ta to an unwilling section
     """
-    # initialize counter for number of unwilling
-    unwilling_total = 0
 
-    # https://stackoverflow.com/questions/44639976/zip-three-2-d-arrays-into-tuples-of-3
-    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
-    # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, PREFERENCE_ARRAY)).reshape(-1, 2)))
+    ta_sections = np.where(L == 1, PREFERENCE_ARRAY, 0)
 
-    for item in new_list:
-        if item[0] == 1 and item[1] == 'U':
-            # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
-            unwilling_total += 1
+    # count number of tas that are assigned to an unwilling section
+    count_u = np.count_nonzero(ta_sections == 'U', axis=1)
+
+    # get the sum of the list
+    unwilling_total = sum(list(count_u))
 
     return unwilling_total
-
 
 def unpreferred(L):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
@@ -127,17 +88,13 @@ def unpreferred(L):
     Returns:
         unpreferred_total (int): total of allocation a ta to a willing section
     """
-    # initialize counter for number of unwilling
-    unpreferred_total = 0
+    ta_sections = np.where(L == 1, PREFERENCE_ARRAY, 0)
 
-    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
-    # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((L, PREFERENCE_ARRAY)).reshape(-1, 2)))
+    # count number of tas that are assigned to a willing section
+    count_W = np.count_nonzero(ta_sections == 'W', axis=1)
 
-    for item in new_list:
-        if item[0] == 1 and item[1] == 'W':
-            # increase the number of willing counter if the ta is assigned and they say they are willing for that
-            unpreferred_total += 1
+    # get the sum of the list
+    unpreferred_total = sum(list(count_W))
 
     return unpreferred_total
 
@@ -623,7 +580,7 @@ def swap_labs(solutions):
         L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
     """
     L = solutions[0]
-    print(L)
+    # print(L)
     lab1 = int(rnd.randrange(L.shape[1]))
     lab2 = lab1
     while lab2 == lab1:
@@ -643,7 +600,7 @@ def swap_tas(solutions):
         L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
     """
     L = solutions[0]
-    print(L)
+    # print(L)
     ta1 = int(rnd.randrange(L.shape[0]))
     ta2 = ta1
     while ta2 == ta1:
