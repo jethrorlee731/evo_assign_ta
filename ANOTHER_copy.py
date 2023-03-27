@@ -195,7 +195,7 @@ def add_ta_undersupport(solutions):
     return L
 
 
-def remove_unpreferred(solutions):
+def remove_unwilling(solutions):
     """ Removing a random TA who doesn't want to at a lab section they're assigned to
     Args:
         solutions
@@ -448,7 +448,7 @@ def main():
     E.add_agent("add_ta_preferred", add_ta_preferred, k=1)
     E.add_agent("add_ta_willing", add_ta_willing, k=1)
     E.add_agent("add_ta_undersupport", add_ta_undersupport, k=1)
-    E.add_agent("remove_unpreferred", remove_unpreferred, k=1)
+    E.add_agent("remove_unwilling", remove_unwilling, k=1)
     E.add_agent("remove_willing", remove_willing, k=1)
     E.add_agent("remove_time_conflict", remove_time_conflict, k=1)
     E.add_agent("remove_ta_overallocated", remove_ta_overallocated, k=1)
