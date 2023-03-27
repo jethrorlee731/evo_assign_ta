@@ -174,5 +174,5 @@ class Evo:
             rslt_df = pd.DataFrame([combined_dict])
             # put the two dataframes together
             self.df = pd.concat([self.df, rslt_df])
-
+            self.df.to_csv('CJJCM_sol.csv', index=False)
         return self.df.to_string(index=False)

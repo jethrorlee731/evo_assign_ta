@@ -470,10 +470,6 @@ def main():
     #
     # # Print final results
     # print(E)
-    # move final dataframe into a csv file
-    E.to_csv('CJJCM_sol.csv', index=False)
-
-
 
 if __name__ == '__main__':
     main()
