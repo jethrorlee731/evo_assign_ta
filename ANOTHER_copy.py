@@ -196,7 +196,7 @@ def add_ta_undersupport(solutions):
 
 
 def remove_unpreferred(solutions):
-    """ Removing a random TA who doesn't want to at a lab section they're assigned to
+    """ Removing a random TA who is only willing to work at a lab section they're assigned to
     Args:
         solutions
     Returns:
@@ -213,7 +213,7 @@ def remove_unpreferred(solutions):
     for i in range(len(preference_list)):
         for j in range(len(preference_list[i])):
             # store a TA and the lab they do not prefer to work at
-            if preference_list[i][j] == 'U':
+            if preference_list[i][j] == 'W':
                 bad_assignments.append((i, j))
 
     # if there are candidate TAs available to be removed, remove a TA from a section they don't prefer
@@ -224,8 +224,8 @@ def remove_unpreferred(solutions):
     return L
 
 
-def remove_willing(solutions):
-    """ Removing a random TA who is only willing to work for a lab section they're assigned to
+def remove_unwilling(solutions):
+    """ Removing a random TA who is not willing to work for a lab section they're assigned to
     Args:
         solutions
     Returns:
@@ -242,7 +242,7 @@ def remove_willing(solutions):
     for i in range(len(preference_list)):
         for j in range(len(preference_list[i])):
             # store a TA and the lab they are only willing to work for
-            if preference_list[i][j] == 'W':
+            if preference_list[i][j] == 'U':
                 bad_assignments.append((i, j))
 
     # if there are candidate TAs available to be removed, remove a TA from the section they're only willing to assist
@@ -449,7 +449,7 @@ def main():
     E.add_agent("add_ta_willing", add_ta_willing, k=1)
     E.add_agent("add_ta_undersupport", add_ta_undersupport, k=1)
     E.add_agent("remove_unpreferred", remove_unpreferred, k=1)
-    E.add_agent("remove_willing", remove_willing, k=1)
+    E.add_agent("remove_unwilling", remove_unwilling, k=1)
     E.add_agent("remove_time_conflict", remove_time_conflict, k=1)
     E.add_agent("remove_ta_overallocated", remove_ta_overallocated, k=1)
     E.add_agent("swap_assignment", swap_assignment, k=1)
