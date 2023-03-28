@@ -111,7 +111,7 @@ class Evo:
         # add the new solution that results after the operation to the framework
         self.add_solution(new_solution)
 
-    def evolve(self, n=1, dom=100, status=100, sync =1000, time_limit=600):
+    def evolve(self, n=1, dom=100, status=100, sync=1000, time_limit=600):
         """ To run n random agents against the population
         Args:
             n (int) - # of agent invocations

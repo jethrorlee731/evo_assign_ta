@@ -19,13 +19,15 @@ TAS = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
 
 # Constant - list of the maximum number of labs each of the 43 tas wants to work for
 MAX_ASSIGNED_LIST = list(map(int, [item[2] for item in TAS]))
+
 # Constant - list of the times for each of the 17 sections
 DAYTIME_LIST = [item[2] for item in SECTIONS]
+
 # Constant - list of the minimum amount of TAs that each of the 17 sections needs
 MIN_TA_LIST = list(map(int, [item[-2] for item in SECTIONS]))
+
 # Constant - 2d array of TA preferences
 PREFERENCE_ARRAY = np.array([item[3:] for item in TAS])
-
 
 # Objective functions - Determine the problems that each solution should address
 
@@ -46,14 +48,15 @@ def overallocation(L):
 
 
 def conflicts(L):
-    """ Number of TAs with one or more time conflicts
+    """
+    Number of TAs with one or more time conflicts
     Args:
         L (numpy array): a solution in the form of a 2D array with sections as columns and tas as rows
     Return:
         time_conflicts (int): number of TAs with one or more time conflict
     """
     # retrieve the indices in the inputted solution that indicate a TA is assigned to a lab along with the time
-    # associated with the section of that lab (AM I INTERPRETING THIS CORRECTLY???)
+    # associated with the section of that lab
     ta_sections = np.where(L == 1, DAYTIME_LIST, L)
 
     # count number of conflicts, in which a TA is assigned to 2 sections that meet at the same time (each TA can count
@@ -204,7 +207,7 @@ def add_ta_undersupport(solutions):
         if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
             labs_in_need.append(i)
 
-    # if there are undersupported labs, assign a random TA to a random lab that needs more TAs
+    # if there are under-supported labs, assign a random TA to a random lab that needs more TAs
     if len(labs_in_need) > 0:
         lab = rnd.choice(labs_in_need)
         ta = rnd.randrange(0, 17)
@@ -460,6 +463,7 @@ def opposites(solutions):
     L = np.where((L == 0) | (L == 1), L ^ 1, L)
 
     return L
+
 
 # BELOW ARE THE OLD AGENTS THAT WORK BETTER (BUT MORE FOR LOOPS) BECAUSE IT DOESN'T RANDOMLY CHOOSE
 # A TA TO CHANGE - RATHER, LOOKS THROUGH ALL TAS
@@ -816,6 +820,7 @@ def main():
 
     # Run the evolver
     E.evolve(1000000, 100, 10000)
+
 
 if __name__ == '__main__':
     main()

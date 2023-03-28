@@ -6,11 +6,12 @@ March 27, 2023
 Unit tests for assign_ta.py
 """
 # import statements
-import assign_ta as assign
+from evo_assign_ta import assign_ta as assign
 import numpy as np
 
 # load the CSV file containing information about the sections and store the values into a numpy array
 SECTIONS = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+
 # load the CSV file containing information about the TAs and store the values into an array
 TAS = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
 
