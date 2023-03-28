@@ -12,6 +12,7 @@ from functools import reduce
 import pickle
 import time
 import pandas as pd
+import os
 
 class Evo:
     """
@@ -125,6 +126,11 @@ class Evo:
         Citation for time limit functionality:
         https://stackoverflow.com/questions/2831775/running-a-python-script-for-a-user-specified-amount-of-time
         """
+        if os.path.exists('solutions.dat'):
+            # if the solutions.dat exists, open the file and clear it
+            with open('solutions.dat', 'wb') as file:
+                file.truncate(0)
+
         # retrieve the time this function started running
         start_time = time.time()
 
