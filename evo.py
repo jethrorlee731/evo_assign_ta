@@ -9,11 +9,8 @@ import random as rnd
 import copy
 from functools import reduce
 import pickle
-<<<<<<< HEAD
 import time
-=======
 import pandas as pd
->>>>>>> 7229a0562ac133ab7e191b8e269a05b9fbf4e2e5
 
 
 class Evo:
@@ -23,28 +20,13 @@ class Evo:
         pop (dict): maps evaluation scores to solutions; solution-evaluation (key) ==> solution (value)
         fitness (dict): name of fitness function (key) ==> objective function (value)
         agents(dict): name of the agent (key) ==> (agent operator, # of input solutions) (value)
+        df (Pandas dataframe): a dataframe to store the results in
     """
 
     def __init__(self):
-<<<<<<< HEAD
         self.pop = {}
         self.fitness = {}
-        self.agents = {}  #
-=======
-        # using in a dictionary, so two solution-evaluations (key) that map to the same set of objective scores are
-        # counted as duplicates
-        # ((obj1, eval1), (obj2, eval2), ...) / solution-evaluation (key) ==> solution (value)
-        self.pop = {}
-
-        # name of fitness function (key) ==> objective function (value)
-        self.fitness = {}
-
-        # the agents don't necessarily take in only one solution as input
-        # name of the agent (key) ==> (agent operator, # of input solutions) (value)
         self.agents = {}
->>>>>>> 7229a0562ac133ab7e191b8e269a05b9fbf4e2e5
-
-        # dataframe for storing results
         self.df = pd.DataFrame(columns=['groupname', 'overallocation', 'conflicts', 'undersupport',
                                         'unwilling', 'unpreferred'])
     def size(self):
@@ -146,7 +128,6 @@ class Evo:
         start_time = time.time()
 
         # run the evolve function for the user-specified amount of seconds
-<<<<<<< HEAD
         while (time.time() - start_time) < time_limit:
             agent_names = list(self.agents.keys())
             for i in range(n):
@@ -181,7 +162,6 @@ class Evo:
                                 self.pop[eval] = sol
                     except Exception as e:
                         print(e)
-=======
         agent_names = list(self.agents.keys())
         for i in range(n):
             if (time.time() - start_time) > time_limit:
@@ -217,7 +197,6 @@ class Evo:
             # resave the non-dominated solutions back to the file
             with open('solutions.dat', 'wb') as file:
                 pickle.dump(self.pop, file)
->>>>>>> 7229a0562ac133ab7e191b8e269a05b9fbf4e2e5
 
     @staticmethod
     def _dominates(p, q):
@@ -260,19 +239,12 @@ class Evo:
         self.pop = {k: self.pop[k] for k in nds}
 
     def __str__(self):
-<<<<<<< HEAD
-        """ Output the solutions in the population
+        """ Output the solutions in the population and save them to a CSV file
         Args:
             None
         Returns:
-            rslt (str) - the remaining solutions registered in the population
+            a string of the remaining solutions registered in the population
         """
-        rslt = ""
-        for eval, sol in self.pop.items():
-            rslt += str(dict(eval)) + ":\t" + str(sol) + "\n"
-        return rslt
-=======
-        """ Output the solutions in the population """
         for eval, sol in self.pop.items():
 
             rslt = dict(eval)
@@ -293,4 +265,3 @@ class Evo:
             self.df.to_csv('CJJCM_sol.csv', index=False)
 
         return self.df.to_string(index=False)
->>>>>>> 7229a0562ac133ab7e191b8e269a05b9fbf4e2e5
