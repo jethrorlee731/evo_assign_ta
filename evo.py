@@ -30,6 +30,7 @@ class Evo:
         self.agents = {}
         self.df = pd.DataFrame(columns=['groupname', 'overallocation', 'conflicts', 'undersupport',
                                         'unwilling', 'unpreferred'])
+
     def size(self):
         """ The size of the solution population (helper function)
         Args:
@@ -179,13 +180,17 @@ class Evo:
         """
         # get the scores for one solution
         pscores = [score for _, score in p]
+
         # get the scores for the other solution
         qscores = [score for _, score in q]
+
         # calculate the differences in the scores between the two solutions
         score_diffs = list(map(lambda x, y: y - x, pscores, qscores))
+
         # calculate the minimum and maximum differences
         min_diff = min(score_diffs)
         max_diff = max(score_diffs)
+
         # p dominates q if the minimum difference is at least 0 and the maximum difference is positive
         return min_diff >= 0.0 and max_diff > 0.0
 
@@ -223,7 +228,6 @@ class Evo:
             containing the name of group and its evaluation scores for each registered objective
         """
         for eval, sol in self.pop.items():
-
             # obtain an evaluation and store it as a dictionary
             rslt = dict(eval)
 

@@ -5,7 +5,7 @@ HW4: An Evolutionary Approach to TA/Lab Assignments (test_objectives.py)
 March 27, 2023
 Unit tests for assign_ta.py
 """
-# import statements
+
 from evo_assign_ta import assign_ta as assign
 import numpy as np
 
