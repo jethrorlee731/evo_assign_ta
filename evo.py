@@ -210,6 +210,8 @@ class Evo:
             None, just registers the non-dominated solutions in the population
         """
         nds = reduce(Evo._reduce_nds, self.pop.keys(), self.pop.keys())
+
+        # update the internal pop with only non-dominated solutions
         self.pop = {k: self.pop[k] for k in nds}
 
     def __str__(self):
@@ -217,7 +219,8 @@ class Evo:
         Args:
             None
         Returns:
-            a string containing the name of a solution and its evaluation scores for each registered objective
+            Return a string version of dataframe with rows being each non-dominated Pareto-optimal solution
+            containing the name of group and its evaluation scores for each registered objective
         """
         for eval, sol in self.pop.items():
 
@@ -230,14 +233,14 @@ class Evo:
             # combine the groupname and evaluation dictionaries together
             combined_dict = {**name_dict, **rslt}
 
-            # convert the dictionary containing the name of a solution and its evaluation scores to a dictionary
+            # convert the dictionary containing the name of group and its evaluation scores to a dictionary
             rslt_df = pd.DataFrame([combined_dict])
 
-            # store the dataframe containing the solution name and its evaluation scores in the framework
+            # store the dataframe containing the group name and its evaluation scores in the framework
             self.df = pd.concat([self.df, rslt_df])
 
             # save solutions (dataframe) to a CSV file
             self.df.to_csv('CJJCM_sol.csv', index=False)
 
-        # return the string of the remaining solutions and their evaluation scores
+        # return the string of the solutions and their evaluation scores
         return self.df.to_string(index=False)
