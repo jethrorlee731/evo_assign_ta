@@ -219,6 +219,7 @@ class Evo:
         # update the internal pop with only non-dominated solutions
         self.pop = {k: self.pop[k] for k in nds}
 
+
     def __str__(self):
         """ Output the solutions in the population and save them to a CSV file
         Args:
@@ -228,6 +229,8 @@ class Evo:
             containing the name of group and its evaluation scores for each registered objective
         """
         for eval, sol in self.pop.items():
+            rslt_str = ''
+            rslt_str += str(dict(eval)) + ":\t" + str(sol) + "\n"
             # obtain an evaluation and store it as a dictionary
             rslt = dict(eval)
 
@@ -247,4 +250,5 @@ class Evo:
             self.df.to_csv('CJJCM_sol.csv', index=False)
 
         # return the string of the solutions and their evaluation scores
-        return self.df.to_string(index=False)
+        # return self.df.to_string(index=False)
+        return rslt_str
