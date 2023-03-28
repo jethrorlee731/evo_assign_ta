@@ -1,9 +1,10 @@
 """
 Colbe Chang, JC Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
 DS3500
-HW4: An Evolutionary Approach to TA/Lab Assignments (test_objectives.py)
-March 27, 2023
-Unit tests for assign_ta.py
+HW4: An Evolutionary Approach to TA/Lab Assignments (test_assign_ta.py)
+March 28, 2023
+
+test_assign_ta.py - Unit tests for assign_ta.py
 """
 
 import assign_ta as assign

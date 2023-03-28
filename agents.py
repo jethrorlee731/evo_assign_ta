@@ -1,10 +1,16 @@
+"""
+Colbe Chang, Jocelyn Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
+DS3500
+HW4: An Evolutionary Approach to TA/Lab Assignments (agents.py)
+March 28, 2023
+
+agents.py - agents for the framework to modify solutions so they better align with the objectives
+"""
+
 import assign_ta as TA
 import random as rnd
 import numpy as np
 from collections import defaultdict
-
-
-# Agents - modify solutions so they better align with the objectives
 
 def add_ta_preferred(solutions):
     """ Assigning a TA to a certain lab section they prefer to work at
