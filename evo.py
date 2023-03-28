@@ -105,40 +105,42 @@ class Evo:
         start_time = time.time()
 
         # run the evolve function for the user-specified amount of seconds
-        while (time.time() - start_time) < time_limit:
-            agent_names = list(self.agents.keys())
-            for i in range(n):
-                pick = rnd.choice(agent_names)  # pick an agent to run
-                self.run_agent(pick)
-                if i % dom == 0:
-                    # remove the dominated solutions every 100 times by default
-                    self.remove_dominated()
-    
-                if i % status == 0:  # print the population
-                    self.remove_dominated()
-                    # print("Iteration: ", i)
-                    # print("Population Size: ", self.size())
-                    print(self)
 
-                if i % sync == 0:
-                    try:
-                        with open('solutions.dat', 'rb') as file:
-
-                            # load saved population into a dictionary object
-                            loaded = pickle.load(file)
-
-                            # merge loaded solutions into my population
-                            for eval, sol in loaded.items():
-                                self.pop[eval] = sol
-                    except Exception as e:
-                        print(e)
-
-                # Clean up population
+        agent_names = list(self.agents.keys())
+        for i in range(n):
+            if time.time() - start_time > time_limit:
+                break
+            pick = rnd.choice(agent_names)  # pick an agent to run
+            self.run_agent(pick)
+            if i % dom == 0:
+                # remove the dominated solutions every 100 times by default
                 self.remove_dominated()
 
-                # resave the non-dominated solutions back to the file
-                with open('solutions.dat', 'wb') as file:
-                    pickle.dump(self.pop, file)
+            if i % status == 0:  # print the population
+                self.remove_dominated()
+                # print("Iteration: ", i)
+                # print("Population Size: ", self.size())
+                print(self)
+
+            if i % sync == 0:
+                try:
+                    with open('solutions.dat', 'rb') as file:
+
+                        # load saved population into a dictionary object
+                        loaded = pickle.load(file)
+
+                        # merge loaded solutions into my population
+                        for eval, sol in loaded.items():
+                            self.pop[eval] = sol
+                except Exception as e:
+                    print(e)
+
+            # Clean up population
+            self.remove_dominated()
+
+            # resave the non-dominated solutions back to the file
+            with open('solutions.dat', 'wb') as file:
+                pickle.dump(self.pop, file)
 
     @staticmethod
     def _dominates(p, q):
