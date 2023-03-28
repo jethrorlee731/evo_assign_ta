@@ -293,7 +293,6 @@ def remove_time_conflict(solutions):
     assignments_dict = defaultdict(list)
     day_dict = defaultdict(list)
     candidate_labs = []
-    viable_lab = False
 
     # extract a solution
     L = solutions[0]
@@ -344,13 +343,10 @@ def remove_time_conflict(solutions):
     for i in range(len(DAYTIME_LIST)):
         if DAYTIME_LIST[i] == bad_time:
             candidate_labs.append(i)
-    #
-    while not viable_lab:
-        # remove a TA from a lab they are already assigned to but cannot go to due to time conflicts
-        lab = rnd.choice(candidate_labs)
-        if L[candidate_ta, lab] == 1:
-            L[candidate_ta, lab] = 0
-            viable_lab = True
+
+    # remove a TA from a lab due to time conflicts
+    lab = rnd.choice(candidate_labs)
+    L[candidate_ta, lab] = 0
 
     return L
 
@@ -434,11 +430,9 @@ def swap_labs(solutions):
 
     # choose one random lab assignment
     lab1 = rnd.randrange(L.shape[1])
-    lab2 = lab1
 
-    # choose a unique and random second lab assignment
-    while lab2 == lab1:
-        lab2 = rnd.randrange(L.shape[1])
+    # choose a random second lab assignment
+    lab2 = rnd.randrange(L.shape[1])
 
     # exchange the TAs between two different labs
     L[:, [lab1, lab2]] = L[:, [lab2, lab1]]
@@ -459,11 +453,9 @@ def swap_tas(solutions):
 
     # pick a random TA
     ta1 = rnd.randrange(L.shape[0])
-    ta2 = ta1
 
-    # pick a unique and random second TA
-    while ta2 == ta1:
-        ta2 = rnd.randrange(L.shape[0])
+    # pick a random second TA
+    ta2 = rnd.randrange(L.shape[0])
 
     # exchange labs between two TAs
     L[[ta1, ta2]] = L[[ta2, ta1]]
