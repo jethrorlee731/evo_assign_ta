@@ -60,10 +60,9 @@ def add_ta_undersupport(solutions):
     # minimum number of TAs each lab needs
     assigned_vs_needed = list(zip(ta_num, TA.MIN_TA_LIST))
 
-    for i in range(len(assigned_vs_needed)):
-        # store the labs that need more TAs in a list
-        if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
-            labs_in_need.append(i)
+    # store the labs that need more ta in a list
+    labs_in_need = list(
+        filter(lambda i: assigned_vs_needed[i][0] < assigned_vs_needed[i][1], range(len(assigned_vs_needed))))
 
     # if there are under-supported labs, assign a random TA to a random lab that needs more TAs
     if len(labs_in_need) > 0:
@@ -138,7 +137,6 @@ def remove_time_conflict(solutions):
     # initialize variables and default dictionaries
     assignments_dict = defaultdict(list)
     day_dict = defaultdict(list)
-    candidate_labs = []
 
     # extract a solution
     L = solutions[0]
@@ -148,9 +146,9 @@ def remove_time_conflict(solutions):
 
     # create a dictionary with key: ta, value: section they are working at
     for assignment in assignments:
-        try:
+        if len(assignments_dict) != 0:
             assignments_dict[assignment[0]].append(int(assignment[1]))
-        except:
+        else:
             assignments_dict[assignment[0]] = [int(assignment[1])]
 
     # go through each TA and each of their assignments
@@ -215,10 +213,9 @@ def remove_ta_overallocated(solutions):
     # the maximum number of labs they want to work at
     assigned_vs_max = list(zip(assigned, TA.MAX_ASSIGNED_LIST))
 
-    for i in range(len(assigned_vs_max)):
-        # a TA is a candidate for removal from a lab if they are allocated too many labs
-        if assigned_vs_max[i][0] > assigned_vs_max[i][1]:
-            candidate_tas.append(i)
+    # store candidate tas based on if they are allocated to too many labs
+    candidate_tas = list(
+        filter(lambda i: assigned_vs_max[i][0] > assigned_vs_max[i][1], range(len(assigned_vs_max))))
 
     # if there are TAs available to choose from, select one that will lose a lab assignment
     if len(candidate_tas) > 0:
