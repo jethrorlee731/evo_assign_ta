@@ -127,9 +127,8 @@ class Evo:
         https://stackoverflow.com/questions/2831775/running-a-python-script-for-a-user-specified-amount-of-time
         """
         if os.path.exists('solutions.dat'):
-            # if the solutions.dat exists, open the file and clear it
-            with open('solutions.dat', 'wb') as file:
-                file.truncate(0)
+            # remove solutions.dat file if it already exists
+            os.remove('solutions.dat')
 
         # retrieve the time this function started running
         start_time = time.time()
