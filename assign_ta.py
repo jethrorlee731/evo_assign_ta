@@ -5,7 +5,7 @@ HW4: An Evolutionary Approach to TA/Lab Assignments (assign_ta.py)
 March 27, 2023
 """
 # import statements
-from evo_assign_ta import evo
+from evo import Evo
 import random as rnd
 import numpy as np
 from collections import defaultdict
