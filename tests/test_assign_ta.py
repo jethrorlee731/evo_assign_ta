@@ -7,7 +7,7 @@ March 28, 2023
 test_assign_ta.py - Unit tests for assign_ta.py
 """
 
-import assign_ta as assign
+from evo_assign_ta import assign_ta as assign
 import numpy as np
 
 # load the CSV file containing information about the sections and store the values into a numpy array

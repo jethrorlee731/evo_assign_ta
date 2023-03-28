@@ -310,69 +310,117 @@ def remove_unwilling(solutions):
     return L
 
 
-def remove_time_conflict(solutions):
-    """ Removing a random TA from a certain lab section if they have a time conflict
-    Args:
-        solutions (list of numpy arrays): list of 2D arrays with sections in columns and TAs in rows
-    Returns:
-        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
-    """
-    # initialize variables and default dictionaries
-    assignments_dict = defaultdict(list)
-    day_dict = defaultdict(list)
-    candidate_labs = []
+# def remove_time_conflict(solutions):
+#     """ Removing a random TA from a certain lab section if they have a time conflict
+#     Args:
+#         solutions (list of numpy arrays): list of 2D arrays with sections in columns and TAs in rows
+#     Returns:
+#         L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
+#     """
+#     # initialize variables and default dictionaries
+#     assignments_dict = defaultdict(list)
+#     day_dict = defaultdict(list)
+#     candidate_labs = []
+#
+#     # extract a solution
+#     L = solutions[0]
+#
+#     # numpy array containing indices of where 1 is present (indicating a TA is working at a specific lab) in the L array
+#     assignments = np.argwhere(L == 1)
+#
+#     # create a dictionary with key: ta, value: section they are working at
+#     for assignment in assignments:
+#         try:
+#             assignments_dict[assignment[0]].append(int(assignment[1]))
+#         except:
+#             assignments_dict[assignment[0]] = [int(assignment[1])]
+#
+#     # go through each TA and each of their assignments
+#     for ta, labs in assignments_dict.items():
+#         for lab in labs:
+#             # get the times for each section a TA is assigned to
+#             time = DAYTIME_LIST[lab]
+#             # append to a new dictionary with key being the TA, value being the section times (list)
+#             day_dict[ta].append(time)
+#
+#     # inspect TAs who are assigned to multiple labs
+#     if len(day_dict.values()) > 0:
+#
+#         for ta, times in day_dict.items():
+#
+#             # checking whether the number of unique times a TA must work at a lab for is equal to the number of
+#             # distinct times
+#             if set(times) != times:
+#                 # empty list to hold the unique times that a TA must be at a lab
+#                 ta_times = []
+#
+#                 # iterate through each time a TA must go to a lab for
+#                 for time in times:
+#                     # store times not yet observed in a TA's list of lab times
+#                     if time not in times:
+#                         ta_times.append(time)
+#                     else:
+#                         # if a lab time is re-encountered, store it in a variable as well as that TA's id
+#                         bad_time = time
+#                         candidate_ta = ta
+#                         # break out of the loop once a problematic time is found
+#                         continue
+#
+#     # locate a lab section that a TA has a time conflict for
+#     candidate_labs = np.where(np.array(DAYTIME_LIST) == bad_time)
+#
+#     # remove a TA from a lab due to time conflicts
+#     lab = rnd.choice(candidate_labs[0])
+#     L[candidate_ta, lab] = 0
+#
+#     return L
 
-    # extract a solution
+###  REMOVE_TIME_CONFLICT WITHOUT FOR LOOPS:
+def remove_time_conflict(solutions):
+    """ Remove a random TA from a lab section if they have a time conflict
+    Args:
+        solutions (list of numpy arrays): list of 2D arrays with sections in columns and
+        TAs in rows
+    Returns
+    L (numpy array): updated version of inputed 2D array that reflects agent's changes
+
+    """
+    # extract solution
     L = solutions[0]
 
-    # numpy array containing indices of where 1 is present (indicating a TA is working at a specific lab) in the L array
-    assignments = np.argwhere(L == 1)
+    # get indices of assigned TAs
+    ta_assignments = L.nonzero()
 
-    # create a dictionary with key: ta, value: section they are working at
-    for assignment in assignments:
-        try:
-            assignments_dict[assignment[0]].append(int(assignment[1]))
-        except:
-            assignments_dict[assignment[0]] = [int(assignment[1])]
+    # create list of tuples (TA, section)
+    assignments = [(ta, lab) for ta, lab in zip(*ta_assignments)]
 
-    # go through each TA and each of their assignments
-    for ta, labs in assignments_dict.items():
-        for lab in labs:
-            # get the times for each section a TA is assigned to
-            time = DAYTIME_LIST[lab]
-            # append to a new dictionary with key being the TA, value being the section times (list)
-            day_dict[ta].append(time)
+    # create list of lists [[times for TA1], [times for TA2]...]
+    ta_times = [[DAYTIME_LIST[lab] for ta_, lab in assignments if ta_ == ta] for ta in range(L.shape[0])]
 
-    # inspect TAs who are assigned to multiple labs
-    if len(day_dict.values()) > 0:
+    # list of TAs with conflicted times
+    conflicts = [ta for ta, times in enumerate(ta_times) if len(set(times)) != len(times)]
 
-        for ta, times in day_dict.items():
+    if conflicts:
+        # choose a random TA with conflict
+        conflict = np.random.choice(conflicts)
 
-            # checking whether the number of unique times a TA must work at a lab for is equal to the number of
-            # distinct times
-            if set(times) != times:
-                # empty list to hold the unique times that a TA must be at a lab
-                ta_times = []
+        # get labs that TA is assigned to
+        conflict_labs = [lab for ta, lab in assignments if ta == conflict]
 
-                # iterate through each time a TA must go to a lab for
-                for time in times:
-                    # store times not yet observed in a TA's list of lab times
-                    if time not in times:
-                        ta_times.append(time)
-                    else:
-                        # if a lab time is re-encountered, store it in a variable as well as that TA's id
-                        bad_time = time
-                        candidate_ta = ta
-                        # break out of the loop once a problematic time is found
-                        continue
+        # find times that causing conflicts
+        conflicting_times = set(ta_times[conflict])
 
-    # locate a lab section that a TA has a time conflict for
-    candidate_labs = np.where(np.array(DAYTIME_LIST) == bad_time)
+        # find labs that have conflicts with TA's times
+        labs_with_conflicts = [lab for lab, time in enumerate(DAYTIME_LIST) if time in conflicting_times]
 
-    # remove a TA from a lab due to time conflicts
-    lab = rnd.choice(candidate_labs[0])
-    L[candidate_ta, lab] = 0
+        # choose lab that has conflicts with TA's times
+        lab_to_remove_from = np.random.choice(list(set(conflict_labs) & set(labs_with_conflicts)))
 
+        # choose random TA assigned to the lab to remove
+        ta_to_remove = np.random.choice([ta for ta, lab in assignments if lab == lab_to_remove_from])
+
+        # remove TA from lab
+        L[ta_to_remove, lab_to_remove_from] = 0
     return L
 
 
