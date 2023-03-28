@@ -1,7 +1,8 @@
 """
-Colbe Chang, JC Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
+Colbe Chang, Jocelyn Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
 DS3500
 HW4: An Evolutionary Approach to TA/Lab Assignments (assign_ta.py)
+<<<<<<< HEAD
 March 27, 2023
 """
 # import statements
@@ -10,11 +11,14 @@ import random as rnd
 import numpy as np
 from collections import defaultdict
 from evo_assign_ta.evo import Evo
-
-# Universal variables
+"""
+assign_ta.py - objectives for the framework to evaluate the solutions produced
+"""
+import numpy as np
 
 # load the CSV file containing information about the sections and store the values into a numpy array
 SECTIONS = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+
 # load the CSV file containing information about the TAs and store the values into an array
 TAS = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
 
@@ -30,8 +34,6 @@ MIN_TA_LIST = list(map(int, [item[-2] for item in SECTIONS]))
 # Constant - 2d array of TA preferences
 PREFERENCE_ARRAY = np.array([item[3:] for item in TAS])
 
-# Objective functions - Determine the problems that each solution should address
-
 def overallocation(L):
     """ Sum of the overallocation penalty over all TAs
     Args:
@@ -43,10 +45,9 @@ def overallocation(L):
     labs = list(L.sum(axis=1))
 
     # add to the overallocation penalty if the number of labs assigned to a TA is more than their max
-    oa_penalty = int(sum([x - y for x, y in zip(labs, MAX_ASSIGNED_LIST) if x > y]))
+    oa_penalty = int(sum(list(map(lambda x, y: x - y if x > y else 0, labs, MAX_ASSIGNED_LIST))))
 
     return oa_penalty
-
 
 def conflicts(L):
     """
@@ -79,10 +80,9 @@ def undersupport(L):
     labs = list(L.sum(axis=0))
 
     # sum up the total for undersupport - where there are less TAs assigned to that section than required
-    total_undersupport = int(sum([y - x for x, y in zip(labs, MIN_TA_LIST) if y > x]))
+    total_undersupport = int(sum(map(lambda x, y: x - y if x > y else 0, MIN_TA_LIST, labs)))
 
     return total_undersupport
-
 
 def unwilling(L):
     """ Total/sum of times when a TA is allocated to an unwilling section
@@ -124,6 +124,7 @@ def unpreferred(L):
     unpreferred_total = sum(list(count_W))
 
     return unpreferred_total
+
 
 
 # Agents - modify solutions so they better align with the objectives
@@ -864,3 +865,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

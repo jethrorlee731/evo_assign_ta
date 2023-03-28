@@ -2,17 +2,17 @@
 Colbe Chang, JC Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
 DS3500
 HW4: An Evolutionary Approach to TA/Lab Assignments (evo.py)
-March 27, 2023
-"""
+March 28, 2023
 
-# import statements
+evo.py - core framework for evolutionary programming on a 2d array of ta and lab assignments
+"""
 import random as rnd
 import copy
 from functools import reduce
 import pickle
 import time
 import pandas as pd
-
+import os
 
 class Evo:
     """
@@ -126,6 +126,10 @@ class Evo:
         Citation for time limit functionality:
         https://stackoverflow.com/questions/2831775/running-a-python-script-for-a-user-specified-amount-of-time
         """
+        if os.path.exists('solutions.dat'):
+            # remove solutions.dat file if it already exists
+            os.remove('solutions.dat')
+
         # retrieve the time this function started running
         start_time = time.time()
 
@@ -144,9 +148,6 @@ class Evo:
 
             if i % status == 0:  # print the population size and iteration number
                 self.remove_dominated()
-                print("Iteration: ", i)
-                print("Population Size: ", self.size())
-                print(self)
 
             if i % sync == 0:
                 try:
@@ -224,27 +225,13 @@ class Evo:
         Args:
             None
         Returns:
-            Return a string version of dataframe with rows being each non-dominated Pareto-optimal solution
-            containing the name of group and its evaluation scores for each registered objective
+            rslt(str): Return a string with the key being the 5 objectives and the scores and the
+            value being the numpy array solution
         """
+        # initialize empty string
+        rslt = ''
         for eval, sol in self.pop.items():
-            # obtain an evaluation and store it as a dictionary
-            rslt = dict(eval)
+            # result string to be all the evaluations (all 5 objectives) and the numpy array solution
+            rslt += str(dict(eval)) + ":\t" + str(sol) + "\n"
 
-            # groupname column across all rows of the dataframe (name of the solution)
-            name_dict = {'groupname': 'CJJCM'}
-
-            # combine the groupname and evaluation dictionaries together
-            combined_dict = {**name_dict, **rslt}
-
-            # convert the dictionary containing the name of group and its evaluation scores to a dictionary
-            rslt_df = pd.DataFrame([combined_dict])
-
-            # store the dataframe containing the group name and its evaluation scores in the framework
-            self.df = pd.concat([self.df, rslt_df])
-
-            # save solutions (dataframe) to a CSV file
-            self.df.to_csv('CJJCM_sol.csv', index=False)
-
-        # return the string of the solutions and their evaluation scores
-        return self.df.to_string(index=False)
+        return rslt
