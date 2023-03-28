@@ -286,7 +286,6 @@ def remove_time_conflict(solutions):
     assignments = np.argwhere(L == 1)
 
     # create a dictionary with key: ta, value: section they are working at
-    # WHAT IS THE PURPOSE OF THE TRY STATEMENT?
     for assignment in assignments:
         try:
             assignments_dict[assignment[0]].append(int(assignment[1]))
