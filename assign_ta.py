@@ -1,46 +1,35 @@
-import pandas as pd
 from evo import Evo
 import random as rnd
 import numpy as np
-from collections import Counter, defaultdict
 from collections import defaultdict
+
+# load the CSV file containing information about the sections and store the values into a numpy array
+sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+# load the CSV file containing information about the TAs and store the values into an array
+tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
+
+# Constant - list of max_assigned for the 43 tas
+MAX_ASSIGNED_LIST = list(map(int, [item[2] for item in tas]))
+# Constant - list of the times for each of the 17 sections
+DAYTIME_LIST = [item[2] for item in sections]
+# Constant - list of minimum amount of tas for each of the 17 sections
+MIN_TA_LIST = list(map(int, [item[-2] for item in sections]))
+# Constant - 2d array of ta preferences
+PREFERENCE_ARRAY = np.array([item[3:] for item in tas])
 
 
 def overallocation(L):
     """ Sum of the overallocation penalty over all TAs
     Args:
-        L (numpy array): 1d array containing section and TA assignments,
-            lab maximums for TAs, days & times for each section, minimum
-            TA number for each section, and preferences (unwilling, willing, preferred)
+        L (numpy array): a 2D array with sections as columns and TAs as rows
     Return:
         oa_penalty (int): total overallocation penalty across all tas
     """
-    # separate the solution from the given array
-    solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
-    rest = L[731:]
+    # list of sum of each row (each ta)
+    sums = list(L.sum(axis=1))
 
-    # get the maximum labs tas are willing to support & remove from the total array
-    ta_data = rest[85:].reshape(43, 18)
-    max_labs = list(map(int, [item[0] for item in ta_data]))
-
-    # initialize empty list and variables
-    sum_total = []
-    oa_penalty = 0
-
-    for row in solution:
-        # get the sum of each row
-        total = sum(row)
-        # add it to the list
-        sum_total.append(total)
-
-    # convert 1d array to a list
-    ta_array = list(max_labs)
-
-    for a, b in zip(sum_total, ta_array):
-        if a > int(b):
-            # add to overallocation penalty the difference of how much was actually assigned and what
-            # the ta said their max was
-            oa_penalty += (a - int(b))
+    # add overallocation penalty if the number of assigned to the ta is more than their max
+    oa_penalty = int(sum([x - y for x, y in zip(sums, MAX_ASSIGNED_LIST) if x > y]))
 
     return oa_penalty
 
@@ -48,78 +37,32 @@ def overallocation(L):
 def conflicts(L):
     """ Number of TAs with one or more time conflicts
     Args:
-        L (numpy array): 1d array containing section and TA assignments,
-            lab maximums for TAs, days & times for each section, minimum
-            TA number for each section, and preferences (unwilling, willing, preferred)
+        L (numpy array): 2d array with sections as columns and tas as rows
     Return:
-        total_conflict (int): number ot TAs with 1 or more time conflict
+        time_conflicts (int): number of tas with one or more time conflict
     """
-    # separate the solution from the given array
-    solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
-    rest = L[731:]
 
-    # extract section-specific data from the array
-    section_data = rest[:85].reshape(17, 5)
+    ta_sections = np.where(L == 1, DAYTIME_LIST, L)
 
-    # 1d array of the times for each of the 17 sections
-    daytime_array = [item[0] for item in section_data]
+    # count number of conflicts if a ta is assigned to 2 sections at the same time
+    time_conflicts = list(np.array([len(row[row != '0']) != len(set(row[row != '0'])) for row in ta_sections])).count(
+        True)
 
-    # initialize variables and default dictionaries
-    total_conflict = 0
-    solutions_dict = defaultdict(int)
-    day_dict = defaultdict(list)
-
-    # numpy array containing index of where 1 is present in the L array
-    solutions = np.argwhere(solution == 1)
-
-    # create a dictionary with key: ta, value: section
-    for sol in solutions:
-        solutions_dict[sol[0]] = sol[1]
-
-    for key, value in solutions_dict.items():
-        print(key, value)
-        # append to a new dictionary with key being the ta, value being the section time
-        day_dict[key].append(daytime_array[value])
-
-    for value in day_dict.values():
-        if len(set(value)) != len(value):
-            # there is a ta assigned to the same lab time over more than one section - add one to the counter
-            total_conflict += 1
-
-    return total_conflict
+    return time_conflicts
 
 
 def undersupport(L):
     """ Total/sum of undersupport penalty over all TAs
     Args:
-        L (numpy array): 1d array containing section and TA assignments,
-            lab maximums for TAs, days & times for each section, minimum
-            TA number for each section, and preferences (unwilling, willing, preferred)
+        L (numpy array): 2D array with sections as columns and TAs as rows
     Return:
         total_undersupport (int): total undersupport penalty over all tas
     """
-    # separate the solution from the given array
-    solution = np.array(list(map(int, L[:731]))).reshape(43, 17)
-    rest = L[731:]
+    # sum up each column of the array - number of tas for each section
+    sums = list(L.sum(axis=0))
 
-    # extract the section-specific data from the given array
-    section_data = rest[:85].reshape(17, 5)
-
-    # minimum number of TAs for each section
-    min_tas = np.array(list(map(int, [item[-1] for item in section_data])))
-
-    # initialize total for undersupport
-    total_undersupport = 0
-
-    # sum up each column of the array - number of tas for each column
-    ta_num = list(map(sum, zip(*solution)))
-
-    sections_array = list(min_tas)
-
-    for a, b in zip(ta_num, sections_array):
-        if a < int(b):
-            # add to total for undersupport
-            total_undersupport += (int(b) - a)
+    # sum up the total for unsupport - where there are less tas assigned to that section than required
+    total_undersupport = int(sum([y - x for x, y in zip(sums, MIN_TA_LIST) if y > x]))
 
     return total_undersupport
 
@@ -127,34 +70,18 @@ def undersupport(L):
 def unwilling(L):
     """ Total/sum of allocating a TA to an unwilling section
     Args:
-        L (numpy array): 1d array containing section and TA assignments,
-            lab maximums for TAs, days & times for each section, minimum
-            TA number for each section, and preferences (unwilling, willing, preferred)
+        L (numpy array): 2D array with sections as columns and tas as rows
     Return:
         unwilling_total (int): total of allocation a ta to an unwilling section
     """
-    # separate the solution from the given array
-    solution = L[:731].reshape(43, 17)
-    rest = L[731:]
 
-    # extract the ta-specific data from the given array
-    ta_data = rest[85:].reshape(43, 18)
+    ta_sections = np.where(L == 1, PREFERENCE_ARRAY, 0)
 
-    # create 2d array of whether the ta is unwilling, willing, or preferred for each section
-    preference_array = np.array([item[1:] for item in ta_data])
+    # count number of tas that are assigned to an unwilling section
+    count_u = np.count_nonzero(ta_sections == 'U', axis=1)
 
-    # initialize counter for number of unwilling
-    unwilling_total = 0
-
-    # https://stackoverflow.com/questions/44639976/zip-three-2-d-arrays-into-tuples-of-3
-    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
-    # first element being from L and the second element being from sections_array
-    new_list = list(map(tuple, np.dstack((solution, preference_array)).reshape(-1, 2)))
-
-    for item in new_list:
-        if item[0] == 1 and item[1] == 'U':
-            # increase the number of unwilling counter if the ta is assigned and they say they are unwilling for that
-            unwilling_total += 1
+    # get the sum of the list
+    unwilling_total = sum(list(count_u))
 
     return unwilling_total
 
@@ -162,289 +89,354 @@ def unwilling(L):
 def unpreferred(L):
     """ Total/sum of allocation a TA to an unpreferred (but still willing) section
     Args:
-        L (numpy array): 1d array containing section and TA assignments,
-            lab maximums for TAs, days & times for each section, minimum
-            TA number for each section, and preferences (unwilling, willing, preferred)
+        L (numpy array): 2d array with sections as columns and tas as rows
     Returns:
         unpreferred_total (int): total of allocation a ta to a willing section
     """
-    # separate the solution from the given array
-    solution = L[:731].reshape(43, 17)
-    rest = L[731:]
+    ta_sections = np.where(L == 1, PREFERENCE_ARRAY, 0)
 
-    # extract the ta-specific data from the given array
-    ta_data = rest[85:].reshape(43, 18)
+    # count number of tas that are assigned to a willing section
+    count_W = np.count_nonzero(ta_sections == 'W', axis=1)
 
-    # create 2d array of whether the ta is unwilling, willing, or preferred for each section
-    preference_array = np.array([item[1:] for item in ta_data])
-
-    # initialize counter for number of unwilling
-    unpreferred_total = 0
-
-    # pair up one by one the two 2d arrays element by element; new_list is a list of tuples with the
-    # first element being from solution and the second element being from preference_array
-    new_list = list(map(tuple, np.dstack((solution, preference_array)).reshape(-1, 2)))
-
-    for item in new_list:
-        if item[0] == '1' and item[1] == 'W':
-            # increase the number of willing counter if the ta is assigned and they say they are willing for that
-            unpreferred_total += 1
+    # get the sum of the list
+    unpreferred_total = sum(list(count_W))
 
     return unpreferred_total
 
 
-def add_ta(L, sections_array, ta_array, preference_array, daytime_array):
-    """ Assigning a TA to a certain lab section
-    This code is very messy and will likely need to be cleaned up
+def add_ta_preferred(solutions):
+    """ Assigning a TA to a certain lab section they prefer to work at
     Args:
-        L (numpy array): 2d array with sections as columns and tas as rows
-        sections_array (numpy array): 1d array of minimum TA number for each section
-        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
-        preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
-        daytime_array (numpy array): 1d array of the times for each of the 17 sections
+        solutions
     Returns:
         L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
     """
-    candidate_tas = []
-    lab_total = []
-    solutions_dict = defaultdict(int)
-    day_dict = defaultdict(list)
+    good_assignments = []
 
-    # get the number of labs each TA is assigned to and store those values in a list
-    for row in L:
-        # get the sum of each row
-        total = sum(row)
-        # add it to the list
-        lab_total.append(total)
+    L = solutions[0]
 
-    # convert 1d array containing the max amount of labs each TA wants to be assigned to a list
-    ta_array = list(ta_array)
-    # sum up each column of the array - number of TAs assigned to each lab
+    # get the preferences that TAs have for working in particular sections and store them in a list
+    preference_list = PREFERENCE_ARRAY.tolist()
+
+    # look for combinations of TAs and labs they would prefer working at
+    for i in range(len(preference_list)):
+        for j in range(len(preference_list[i])):
+            # store a TA and a section they prefer to work at
+            if preference_list[i][j] == 'P':
+                good_assignments.append((i, j))
+
+    # if there are candidate TAs available to be assigned, assign a TA in a section they prefer
+    if len(good_assignments) > 0:
+        addition = rnd.choice(good_assignments)
+        L[addition[0], addition[1]] = 1
+
+    return L
+
+
+def add_ta_willing(solutions):
+    """ Assigning a TA to a certain lab section they are only willing to work at
+    Args:
+        solutions
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
+    """
+    good_assignments = []
+
+    L = solutions[0]
+
+    # get the preferences that TAs have for working in particular sections and store them in a list
+    preference_list = PREFERENCE_ARRAY.tolist()
+
+    # look for combinations of TAs and labs they are only willing to work at
+    for i in range(len(preference_list)):
+        for j in range(len(preference_list[i])):
+            # store a TA who is willing to work in a lab they are assigned to as well as that section
+            if preference_list[i][j] == 'W':
+                good_assignments.append((i, j))
+
+    # if there are candidate TAs available to be assigned, assign a TA to a section they're willing to help
+    if len(good_assignments) > 0:
+        addition = rnd.choice(good_assignments)
+        L[addition[0], addition[1]] = 1
+
+    return L
+
+
+def add_ta_undersupport(solutions):
+    """ Assigning a TA to a certain lab section that needs more assistance
+    Args:
+        solutions
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
+    """
+    # intializing a list that stores undersupported labs
+    labs_in_need = []
+
+    L = solutions[0]
+
+    # sum up each column of the array to get the number of TAs assigned to each lab
     ta_num = list(map(sum, zip(*L)))
-    # gather the minimum number of TAs each lab needs and store those values in a list
-    sections_array = list(sections_array)
 
     # create a list of tuples, where the first element is the number of TAs assigned to a lab and the second is the
     # minimum number of TAs each lab needs
-    assigned_vs_needed = list(zip(ta_num, sections_array))
+    assigned_vs_needed = list(zip(ta_num, MIN_TA_LIST))
 
-    # get the preferences TAs have for working in particular sections and store them in a 2d list
-    # preferences = list(preference_array)
-    preferences = preference_array.tolist()
+    for i in range(len(assigned_vs_needed)):
+        # store the labs that need more TAs in a list
+        if assigned_vs_needed[i][0] < assigned_vs_needed[i][1]:
+            labs_in_need.append(i)
 
-    # numpy array containing index of where 1 is present in the L array
+    # if there are undersupported labs, assign a random TA to a random lab that needs more TAs
+    if len(labs_in_need) > 0:
+        lab = rnd.choice(labs_in_need)
+        ta = rnd.randrange(0, 17)
+        L[ta, lab] = 1
+
+    return L
+
+
+def remove_unpreferred(solutions):
+    """ Removing a random TA who is only willing to work at a lab section they're assigned to
+    Args:
+        solutions
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
+    """
+    bad_assignments = []
+
+    L = solutions[0]
+
+    # get the preferences that TAs have for working in particular sections and store them in a list
+    preference_list = PREFERENCE_ARRAY.tolist()
+
+    # look for combinations of TAs and labs they don't prefer to work at
+    for i in range(len(preference_list)):
+        for j in range(len(preference_list[i])):
+            # store a TA and the lab they do not prefer to work at
+            if preference_list[i][j] == 'W':
+                bad_assignments.append((i, j))
+
+    # if there are candidate TAs available to be removed, remove a TA from a section they don't prefer
+    if len(bad_assignments) > 0:
+        removal = rnd.choice(bad_assignments)
+        L[removal[0], removal[1]] = 0
+
+    return L
+
+
+def remove_unwilling(solutions):
+    """ Removing a random TA who is not willing to work for a lab section they're assigned to
+    Args:
+        solutions
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
+    """
+    bad_assignments = []
+
+    L = solutions[0]
+
+    # get the preferences that TAs have for working in particular sections and store them in a list
+    preference_list = PREFERENCE_ARRAY.tolist()
+
+    # look for combinations of TAs and labs they are only willing to work at
+    for i in range(len(preference_list)):
+        for j in range(len(preference_list[i])):
+            # store a TA and the lab they are only willing to work for
+            if preference_list[i][j] == 'U':
+                bad_assignments.append((i, j))
+
+    # if there are candidate TAs available to be removed, remove a TA from the section they're only willing to assist
+    if len(bad_assignments) > 0:
+        removal = rnd.choice(bad_assignments)
+        L[removal[0], removal[1]] = 0
+
+    return L
+
+
+def remove_time_conflict(solutions):
+    """ Removing a random TA from a certain lab section if they have a time conflict
+    Args:
+        solutions (list of numpy arrays): list of 2D arrays with sections in columns and TAs in rows
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
+    """
+    # initialize variables and default dictionaries
+    solutions_dict = defaultdict(list)
+    day_dict = defaultdict(list)
+    candidate_labs = []
+    viable_lab = False
+
+    L = solutions[0]
+
+    # numpy array containing indices of where 1 is present (indicating a TA is working at a specific lab) in the L array
     solutions = np.argwhere(L == 1)
 
     # create a dictionary with key: ta, value: section
-    for solution in solutions:
-        solutions_dict[solution[0]] = solution[1]
+    for sol in solutions:
+        try:
+            solutions_dict[sol[0]].append(int(sol[1]))
+        except:
+            solutions_dict[sol[0]] = [int(sol[1])]
 
-    for key, value in solutions_dict.items():
-        # append to a new dictionary with key being the ta, value being the section time
-        day_dict[key] = daytime_array[value]
+    for ta, labs in solutions_dict.items():
+        for lab in labs:
+            time = DAYTIME_LIST[lab]
+            # append to a new dictionary with key being the ta, value being the section times (list)
+            day_dict[ta].append(time)
 
-    # can definitely break apart into functions
+    # store all the TAs with a time conflict
+    if len(day_dict.values()) > 0:
+        # inspect TAs who are assigned to multiple labs
+        for ta, times in day_dict.items():
 
-    for i in range(len(assigned_vs_needed)):
-        # Labs that need more TAs are prioritized first
-        if int(assigned_vs_needed[i][0]) < int(assigned_vs_needed[i][1]):
-            lab_to_receive_ta = i
-            # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
-            # first element being from L and the second element being from sections_array
-            for j in range(len(preferences)):
-                # if a TA prefers to work in the lab to receive a TA, hasn't reached their section limit, and would have
-                # no time conflicts, they are a candidate TA for that section
-                if preferences[j][i] == 'P' and (int(lab_total[i]) < int(ta_array[i])):
-                    lab_time = daytime_array[lab_to_receive_ta]
-                    for key, value in day_dict.items():
-                        if key == j and lab_time not in value:
-                            candidate_tas.append(j)
+            if set(times) != times:
+                # empty list to hold unique the times that a TA must be at a lab
+                ta_times = []
 
-        # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
-        # instead
-        if len(candidate_tas) == 0:
-            for j in range(len(preferences)):
-                # if a TA is willing to work in the lab to receive a TA, hasn't reached their section limit,
-                # and has no time conflicts with that section, they are a candidate TA for that section
-                if preferences[j][i] == 'W' and (int(lab_total[i]) < int(ta_array[i])):
-                    lab_time = daytime_array[lab_to_receive_ta]
-                    for key, value in day_dict.items():
-                        if key == j and lab_time not in value:
-                            candidate_tas.append(j)
+                for time in times:
+                    if time not in times:
+                        ta_times.append(time)
+                    else:
+                        bad_time = time
+                        candidate_ta = ta
+                        continue
 
-        # if there are candidate TAs available, choose one at random to be assigned to the lab
-        if len(candidate_tas) > 0:
-            ta_to_be_assigned = rnd.choice(candidate_tas)
-            L[ta_to_be_assigned, lab_to_receive_ta] = 1
-
-        else:
-            # now focus on labs that have enough TAs
-            if int(assigned_vs_needed[i][0]) >= int(assigned_vs_needed[i][1]):
-                lab_to_receive_ta = i
-                # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
-                # first element being from L and the second element being from sections_array
-                for j in range(len(preferences)):
-                    # if a TA prefers to work in the lab to receive a TA, hasn't reached their section limit, and has
-                    # no time conflicts with that section, they are a candidate TA for that section
-                    if preferences[j][i] == 'P' and (int(lab_total[i]) < int(ta_array[i])):
-                        candidate_tas.append(j)
-
-            # if no eligible TAs can be assigned to the lab, select from the TAs who are willing to work at that section
-            # instead
-            if len(candidate_tas) == 0:
-                for j in range(len(preferences)):
-                    # if a TA prefers to work in the lab to receive a TA, hasn't reached their section limit,
-                    # and has no time conflicts with that section, they are a candidate TA for that section
-                    if preferences[j][i] == 'W' and (int(lab_total[i]) < int(ta_array[i])):
-                        lab_time = daytime_array[lab_to_receive_ta]
-                        for key, value in day_dict.items():
-                            if key == j and lab_time not in value:
-                                candidate_tas.append(j)
-
-            # if there are candidate TAs available, choose one at random to be assigned to the lab
-            if len(candidate_tas) > 0:
-                ta_to_be_assigned = rnd.choice(candidate_tas)
-                L[ta_to_be_assigned, lab_to_receive_ta] = 1
-
-            else:
-                # don't assign a TA to the lab section to be assigned a new TA if no candidates are available
-                break
+    for i in range(len(DAYTIME_LIST)):
+        if DAYTIME_LIST[i] == bad_time:
+            candidate_labs.append(i)
+    #
+    while not viable_lab:
+        lab = rnd.choice(candidate_labs)
+        if L[candidate_ta, lab] == 1:
+            L[candidate_ta, lab] = 0
+            viable_lab = True
 
     return L
 
 
-def remove_ta(L, sections_array, ta_array, preference_array, daytime_array):
-    """ Removing a TA(s) from a certain lab section
-    NEED TO ACCOUNT TIME CONFLICTS AND OVERALLOCATIONS
-    Also need to consider preferred vs. willing
-    This code is very messy and will likely need to be cleaned up
+def remove_ta_overallocated(solutions):
+    """ Removing a random TA from a lab who is over-allocated too many labs
     Args:
-        L (numpy array): 2D array with sections as columns and tas as rows
-        sections_array (numpy array): 1d array of minimum TA number for each section
-        ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
-        preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
-        daytime_array (numpy array): 1d array of the times for each of the 17 sections
+        solutions (list of numpy arrays): list of 2D arrays with sections in columns and TAs in rows
     Returns:
         L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
     """
-    unassigned_tas = []
-    lab_total = []
-    day_dict = defaultdict(list)
+    L = solutions[0]
+    candidate_tas = []
+    candidate_labs = []
 
-    # get the labs of TAs each TA is assigned to and store those values in a list
-    for row in L:
-        # get the sum of each row
-        total = sum(row)
-        # add it to the list
-        lab_total.append(total)
+    assigned = list(L.sum(axis=1))
+    assigned_vs_max = list(zip(assigned, MAX_ASSIGNED_LIST))
+    for i in range(len(assigned_vs_max)):
+        if assigned_vs_max[i][0] > assigned_vs_max[i][1]:
+            candidate_tas.append(i)
 
-    # convert 1d array containing the max amount of labs each TA wants to be assigned to a list
-    ta_array = list(ta_array)
-    # sum up each column of the array - number of TAs assigned to each lab
-    ta_num = list(map(sum, zip(*L)))
-    # gather the minimum number of TAs each lab needs and store those values in a list
-    sections_array = list(sections_array)
+    if len(candidate_tas) > 0:
+        ta = rnd.choice(candidate_tas)
 
-    # create a list of tuples, where the first element is the number of TAs assigned to a lab and the second is the
-    # minimum number of TAs each lab needs
-    assigned_vs_needed = list(zip(ta_num, sections_array))
+        for i in range(len(L[ta])):
+            if L[ta][i] == 1:
+                candidate_labs.append(i)
 
-    # get the preferences TAs have for working in particular sections and store them in a list
-    # preferences = list(preference_array)
-    preferences = preference_array.tolist()
+        lab = rnd.choice(candidate_labs)
 
-    # can definitely break apart into functions
-
-    for i in range(len(assigned_vs_needed)):
-
-        lab_to_lose_ta = i
-        # pair up one by one the two 2D arrays element by element; new_list is a list of tuples with the
-        # first element being from L and the second element being from sections_array
-        for j in range(len(preferences)):
-            # if a TA does not prefer to work in a lab they are assigned to, remove them from that section
-            if preferences[j][i] == 'U':
-                unassigned_tas.append(j)
-
-            # if a TA has a time conflict in a lab they are assigned to, remove them from that section
-            lab_time = daytime_array[lab_to_lose_ta]
-            for key, value in day_dict.items():
-                if key == j and lab_time in value:
-                    unassigned_tas.append(j)
-
-            # if the TA is assigned too many labs and is only willing to work for the section to lose a TA, remove them
-            # from that section
-            for a, b in zip(lab_total, ta_array):
-                if a > int(b) and preferences[j][i] == 'W':
-                    unassigned_tas.append(j)
-
-        # if there are candidate TAs available to be removed, unassigned each one from the lab to lose a TA
-        if len(unassigned_tas) > 0:
-            for ta in unassigned_tas:
-                # only remove TAs from sections they were already assigned to
-                if int(L[ta, lab_to_lose_ta]) >= 1:
-                    L[ta, lab_to_lose_ta] = 0
+        L[ta, lab] = 0
 
     return L
 
 
-def swapper(L):
+def swap_assignment(solutions):
     """
-    Swap two random values in each row for a specified row
+    Swap two random TA-lab assignments
     Args:
-        L (numpy array): 2D array with sections as columns and tas as rows
+        solutions
     Returns:
         L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
     """
-    # uncomment the following to iterate swapper
-    # over multiple rows at a time
-    # for val in range(rows):
+    L = solutions[0]
     row = rnd.randrange(len(L))
-    section = L[row]
-    i = rnd.randrange(0, len(section))
-    j = rnd.randrange(0, len(section))
+    ta_assignments = L[row, :]
+    i = rnd.randrange(0, len(ta_assignments))
+    j = rnd.randrange(0, len(ta_assignments))
 
-    section[i], section[j] = section[j], section[i]
-    return section
+    ta_assignments[i], ta_assignments[j] = ta_assignments[j], ta_assignments[i]
+    return L
 
 
-# def opposites(solution):
-#     """
-#     Create the complete opposite solution of the input
-#     :param solution: (arr) one possible solution for the assignment
-#     of TAs to sections
-#     :return: solution: (arr) the solution, but all prior 0s are 1s
-#     and vice versa
-#     """
-#     for row in solution:
-#         for ind, num in enumerate(row):
-#             if num == 0:
-#                 row[ind] = 1
-#             else:
-#                 row[ind] = 0
-#     return solution
+def swap_labs(solutions):
+    """
+    Swap two random lab assignments to different TAs
+    Args:
+        solutions (list of numpy arrays): a list containing possible TA-lab assignments that could work
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
+    """
+    L = solutions[0]
+    lab1 = rnd.randrange(L.shape[1])
+    lab2 = lab1
+    while lab2 == lab1:
+        lab2 = rnd.randrange(L.shape[1])
+
+    L[:, [lab1, lab2]] = L[:, [lab2, lab1]]
+
+    return L
+
+
+def swap_tas(solutions):
+    """
+    Swap two random TAs to different labs
+    Args:
+        solutions (list of numpy arrays): a list containing possible TA-lab assignments that could work
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the swapper's changes
+    """
+    L = solutions[0]
+    ta1 = rnd.randrange(L.shape[0])
+    ta2 = ta1
+    while ta2 == ta1:
+        ta2 = rnd.randrange(L.shape[0])
+
+    L[[ta1, ta2]] = L[[ta2, ta1]]
+
+    return L
+
+
+def opposites(solutions):
+    """
+    Create the complete opposite solution of the input
+    Args:
+        solutions (list of numpy arrays): a list containing possible TA-lab assignments that could work
+    Returns:
+        L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes ( all prior 0s
+                         are 1s and vice versa
+    """
+    L = solutions[0]
+    for row in L:
+        for ind, num in enumerate(row):
+            if num == 0:
+                row[ind] = 1
+            else:
+                row[ind] = 0
+    return L
 
 
 def main():
-
     # load the CSV file containing information about the sections and store the values into a numpy array
-    sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
+    # sections = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
     # print(sections)
 
     # load the CSV file containing information about the TAs and store the values into an array
-    tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
+    # tas = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
     # print(tas)
 
-    # ONLY NEED TO LOAD THESE FILES IN THE TEST PY FILE?
-    # # load test csv files into numpy array with integers
-    # test1 = np.loadtxt('test1.csv', delimiter=',', dtype=int)
-    # test2 = np.loadtxt('test2.csv', delimiter=',', dtype=int)
-    # test3 = np.loadtxt('test3.csv', delimiter=',', dtype=int)
-    #
+    # create an initial random solution (np array 17 x 43)
+    # L = np.random.choice([0, 1], size=(len(sections), len(tas)), p=[1. / 3, 2. / 3])
+    # print(L)
+    # print(len(sections))
+    # print(len(tas))
     E = Evo()
 
     # Register some objectives
-
-    E.add_fitness_criteria("overallocation", overallocation)
     E.add_fitness_criteria("overallocation", overallocation)
     E.add_fitness_criteria("conflicts", conflicts)
     E.add_fitness_criteria("undersupport", undersupport)
@@ -452,50 +444,32 @@ def main():
     E.add_fitness_criteria("unpreferred", unpreferred)
 
     # Register some agents
-    # E.add_agent("swapper", swapper, k=1)
-    #
-    # Seed the population with an initial random solution (numpy array of 17 columns by 43 rows as there are 17
-    # # sections and 43 tas)
-    # 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
-    # N = 30
-    # FIGURE OUT HOW TO GENERATE RANDOM 43 ROWS BY 17 COLUMNS OF 0 AND 1S TO REPRESENT L
-    # make array with
-    #         sections_array (numpy array): 1d array of minimum TA number for each section
-    #         ta_array (numpy array): 1d array containing the max amount of labs each ta wants to be assigned to
-    #         preference_array (numpy array): 2d array of whether the ta is unwilling, willing, or preferred for each section
-    #         daytime_array (numpy array): 1d array of the times for each of the 17 sections
-    # a starter solution with initialized sections: minimum TA number for each section,
-    #       max amount of labs, preference, and times for each section
-    #
-
-    from_tas = tas[:, 2:20]
-    from_sections = sections[:, 2:7]
+    E.add_agent("swap_assignment", swap_assignment, k=1)
+    E.add_agent("add_ta_preferred", add_ta_preferred, k=1)
+    E.add_agent("add_ta_willing", add_ta_willing, k=1)
+    E.add_agent("add_ta_undersupport", add_ta_undersupport, k=1)
+    E.add_agent("remove_unpreferred", remove_unpreferred, k=1)
+    E.add_agent("remove_unwilling", remove_unwilling, k=1)
+    E.add_agent("remove_time_conflict", remove_time_conflict, k=1)
+    E.add_agent("remove_ta_overallocated", remove_ta_overallocated, k=1)
+    E.add_agent("swap_assignment", swap_assignment, k=1)
+    E.add_agent("swap_labs", swap_labs, k=1)
+    E.add_agent("swap_tas", swap_tas, k=1)
+    E.add_agent("opposites", opposites, k=1)
 
     N = len(sections) * len(tas)
+    # Seed the population with an initial random solution (numpy array of 17 columns by 43 rows as there are 17
+    # sections and 43 tas); 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
+    rnd_sol = np.array([rnd.randint(0, 1) for _ in range(N)]).reshape(43, 17)
 
-    # create an initial random solution (np array 17 x 43)
-    rnd_sol = np.array([rnd.randint(0, 1) for _ in range(N)])
-    rnd_sol = np.random.choice([0, 1], size=(len(tas), len(sections)), p=[1. / 3, 2. / 3])
+    E.add_solution(rnd_sol)
 
-    # append essential section and maximum lab data
-    expanded_sol = np.append(rnd_sol, from_sections)
-    expanded_sol = np.append(expanded_sol, from_tas)
-
-    # get just the solution
-    # solution = expanded_sol[:731]
-    # rest = expanded_sol[731:]
-
-    E.add_solution(expanded_sol)
-
-
-# E.add_solution(L)
-# print(E)
-#
-# # Run the evolver
-# E.evolve(1000000, 100, 10000)
-#
-# # Print final results
-# print(E)
+    # Run the evolver
+    # E.evolve(1000000, 100, 10000)
+    E.evolve(10000, 100, 1000)
+    #
+    # # Print final results
+    print(E)
 
 
 if __name__ == '__main__':
