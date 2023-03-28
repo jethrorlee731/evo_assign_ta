@@ -42,7 +42,7 @@ def overallocation(L):
     labs = list(L.sum(axis=1))
 
     # add to the overallocation penalty if the number of labs assigned to a TA is more than their max
-    oa_penalty = int(sum([x - y for x, y in zip(labs, MAX_ASSIGNED_LIST) if x > y]))
+    return int(sum(list(map(lambda x, y: x - y if x > y else 0, labs, MAX_ASSIGNED_LIST))))
 
     return oa_penalty
 
@@ -78,9 +78,9 @@ def undersupport(L):
     labs = list(L.sum(axis=0))
 
     # sum up the total for undersupport - where there are less TAs assigned to that section than required
-    total_undersupport = int(sum([y - x for x, y in zip(labs, MIN_TA_LIST) if y > x]))
+    return int(sum(map(lambda x, y: x - y if x > y else 0, MIN_TA_LIST, labs)))
 
-    return total_undersupport
+
 
 
 def unwilling(L):
