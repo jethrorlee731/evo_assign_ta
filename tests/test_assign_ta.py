@@ -6,7 +6,7 @@ March 27, 2023
 Unit tests for assign_ta.py
 """
 
-from evo_assign_ta import assign_ta as assign
+import assign_ta as assign
 import numpy as np
 
 # load the CSV file containing information about the sections and store the values into a numpy array
@@ -19,7 +19,6 @@ TAS = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
 test1 = np.loadtxt('test1.csv', delimiter=',', dtype=int)
 test2 = np.loadtxt('test2.csv', delimiter=',', dtype=int)
 test3 = np.loadtxt('test3.csv', delimiter=',', dtype=int)
-
 
 def test_overallocation():
     """
