@@ -18,11 +18,17 @@ class Evo:
     def __init__(self):
         # using in a dictionary, so two solution-evaluations (key) that map to the same set of objective scores are
         # counted as duplicates
-        self.pop = {}  # ((obj1, eval1), (obj2, eval2), ...) / solution-evaluation (key) ==> solution (value)
-        # ex. step-downs from sort would have the function name, "stepDown"
-        self.fitness = {}  # name of fitness function (key) ==> objective function (value)
+        # ((obj1, eval1), (obj2, eval2), ...) / solution-evaluation (key) ==> solution (value)
+        self.pop = {}
+
+        # name of fitness function (key) ==> objective function (value)
+        self.fitness = {}
+
         # the agents don't necessarily take in only one solution as input
-        self.agents = {}  # name of the agent (key) ==> (agent operator, # of input solutions) (value)
+        # name of the agent (key) ==> (agent operator, # of input solutions) (value)
+        self.agents = {}
+
+        # dataframe for storing results
         self.df = pd.DataFrame(columns=['groupname', 'overallocation', 'conflicts', 'undersupport',
                                         'unwilling', 'unpreferred'])
     def size(self):
@@ -105,10 +111,9 @@ class Evo:
         start_time = time.time()
 
         # run the evolve function for the user-specified amount of seconds
-
         agent_names = list(self.agents.keys())
         for i in range(n):
-            if time.time() - start_time > time_limit:
+            if (time.time() - start_time) > time_limit:
                 break
             pick = rnd.choice(agent_names)  # pick an agent to run
             self.run_agent(pick)
@@ -167,14 +172,23 @@ class Evo:
 
     def __str__(self):
         """ Output the solutions in the population """
-        rslt = ""
         for eval, sol in self.pop.items():
+
             rslt = dict(eval)
+
+            # groupname column across all rows of the dataframe
             name_dict = {'groupname': 'CJJCM'}
+
+            # combine the two dictionaries together
             combined_dict = {**name_dict, **rslt}
+
             # dictionary of each of the columns and its values
             rslt_df = pd.DataFrame([combined_dict])
+
             # put the two dataframes together
             self.df = pd.concat([self.df, rslt_df])
+
+            # save solutions (dataframe) to a csv file
             self.df.to_csv('CJJCM_sol.csv', index=False)
+
         return self.df.to_string(index=False)
