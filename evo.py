@@ -1,10 +1,11 @@
 """
 Colbe Chang, JC Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
 DS3500
-HW4: An Evolutionary Approach to TA/Lab Assignments
+HW4: An Evolutionary Approach to TA/Lab Assignments (evo.py)
 March 27, 2023
 """
 
+# import statements
 import random as rnd
 import copy
 from functools import reduce
@@ -71,6 +72,7 @@ class Evo:
         if self.size() == 0:
             return []
         else:
+            # get the solutions
             popvals = tuple(self.pop.values())
             # we are using deep copies because we don't want to change the original solutions (similar to reproduction)
             # otherwise, so many solutions would get altered at once, leading to just one solution
@@ -83,12 +85,8 @@ class Evo:
         Returns:
             None, just registers the solution within the framework in self.pop
         """
-        # insert the name of the function, any optional parameters, and the application of that function to the
-        # inputted solution as a tuple
-
-        # evaluating the function to every objective in the population
-
-        # applying every registered function to a number, returning a value each time
+        # map the name of the function and the application of that function with optional parameters to a number,
+        # returning a value each time
         eval = tuple([(name, (f(sol, **kwargs))) for name, (f, kwargs) in self.fitness.items()])
 
         # adding the new solution with its associated evaluation to the dictionary
@@ -107,7 +105,10 @@ class Evo:
         # retrieves k random solutions
         picks = self.get_random_solutions(k)
 
+        # operate on the picked random solutions
         new_solution = op(picks)
+
+        # add the new solution that results after the operation to the framework
         self.add_solution(new_solution)
 
     def evolve(self, n=1, dom=100, status=100, sync =1000, time_limit=600):
@@ -127,43 +128,11 @@ class Evo:
         # retrieve the time this function started running
         start_time = time.time()
 
-        # run the evolve function for the user-specified amount of seconds
-        while (time.time() - start_time) < time_limit:
-            agent_names = list(self.agents.keys())
-            for i in range(n):
-                pick = rnd.choice(agent_names)  # pick an agent to run
-                self.run_agent(pick)
-                if i % dom == 0:
-                    # remove the dominated solutions every 100 times by default
-                    self.remove_dominated()
-    
-                if i % status == 0:  # print the population
-                    self.remove_dominated()
-                    print("Iteration: ", i)
-                    print("Population Size: ", self.size())
-                    print(self)
-
-                # Clean up population
-                self.remove_dominated()
-
-                # resave the non-dominated solutions back to the file
-                with open('solutions.dat', 'wb') as file:
-                    pickle.dump(self.pop, file)
-
-                if i % sync == 0:
-                    try:
-                        with open('solutions.dat', 'rb') as file:
-
-                            # load saved population into a dictionary object
-                            loaded = pickle.load(file)
-
-                            # merge loaded solutions into my population
-                            for eval, sol in loaded.items():
-                                self.pop[eval] = sol
-                    except Exception as e:
-                        print(e)
+        # get the agents that will run
         agent_names = list(self.agents.keys())
+
         for i in range(n):
+            # stop the evolution process after the specified time limit (10 minutes by default)
             if (time.time() - start_time) > time_limit:
                 break
             pick = rnd.choice(agent_names)  # pick an agent to run
@@ -172,10 +141,10 @@ class Evo:
                 # remove the dominated solutions every 100 times by default
                 self.remove_dominated()
 
-            if i % status == 0:  # print the population
+            if i % status == 0:  # print the population size and iteration number
                 self.remove_dominated()
-                # print("Iteration: ", i)
-                # print("Population Size: ", self.size())
+                print("Iteration: ", i)
+                print("Population Size: ", self.size())
                 print(self)
 
             if i % sync == 0:
@@ -185,7 +154,7 @@ class Evo:
                         # load saved population into a dictionary object
                         loaded = pickle.load(file)
 
-                        # merge loaded solutions into my population
+                        # merge loaded solutions into the population
                         for eval, sol in loaded.items():
                             self.pop[eval] = sol
                 except Exception as e:
@@ -208,11 +177,16 @@ class Evo:
         Returns:
             a boolean value indicating whether p dominates q
         """
+        # get the scores for one solution
         pscores = [score for _, score in p]
+        # get the scores for the other solution
         qscores = [score for _, score in q]
+        # calculate the differences in the scores between the two solutions
         score_diffs = list(map(lambda x, y: y - x, pscores, qscores))
+        # calculate the minimum and maximum differences
         min_diff = min(score_diffs)
         max_diff = max(score_diffs)
+        # p dominates q if the minimum difference is at least 0 and the maximum difference is positive
         return min_diff >= 0.0 and max_diff > 0.0
 
     @staticmethod
@@ -243,25 +217,27 @@ class Evo:
         Args:
             None
         Returns:
-            a string of the remaining solutions registered in the population
+            a string containing the name of a solution and its evaluation scores for each registered objective
         """
         for eval, sol in self.pop.items():
 
+            # obtain an evaluation and store it as a dictionary
             rslt = dict(eval)
 
-            # groupname column across all rows of the dataframe
+            # groupname column across all rows of the dataframe (name of the solution)
             name_dict = {'groupname': 'CJJCM'}
 
-            # combine the two dictionaries together
+            # combine the groupname and evaluation dictionaries together
             combined_dict = {**name_dict, **rslt}
 
-            # dictionary of each of the columns and its values
+            # convert the dictionary containing the name of a solution and its evaluation scores to a dictionary
             rslt_df = pd.DataFrame([combined_dict])
 
-            # put the two dataframes together
+            # store the dataframe containing the solution name and its evaluation scores in the framework
             self.df = pd.concat([self.df, rslt_df])
 
-            # save solutions (dataframe) to a csv file
+            # save solutions (dataframe) to a CSV file
             self.df.to_csv('CJJCM_sol.csv', index=False)
 
+        # return the string of the remaining solutions and their evaluation scores
         return self.df.to_string(index=False)
