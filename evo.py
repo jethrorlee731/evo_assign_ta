@@ -233,6 +233,7 @@ class Evo:
             rslt_str += str(dict(eval)) + ":\t" + str(sol) + "\n"
             # obtain an evaluation and store it as a dictionary
             rslt = dict(eval)
+            rslt['penalties'] = sum(rslt.values())
 
             # groupname column across all rows of the dataframe (name of the solution)
             name_dict = {'groupname': 'CJJCM'}
