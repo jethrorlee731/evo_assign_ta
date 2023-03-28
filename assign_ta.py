@@ -806,6 +806,8 @@ def main():
     # Seed the population with initial random solutions (numpy array of 17 columns by 43 rows as there are 17
     # sections and 43 tas); 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
     N = len(SECTIONS) * len(TAS)
+    # Seed the population with 1000 random solutions (numpy array of 17 columns by 43 rows as there are 17
+    # sections and 43 tas); 0 means the TA isn't assigned to that section and 1 means the TA is assigned to that section
     for i in range(101):
         rnd_sol = np.array([rnd.randint(0, 1) for _ in range(N)]).reshape(43, 17)
 
