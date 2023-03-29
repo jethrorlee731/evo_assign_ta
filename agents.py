@@ -12,6 +12,7 @@ import random as rnd
 import numpy as np
 from collections import defaultdict
 
+
 def add_ta_preferred(solutions):
     """ Assigning a TA to a certain lab section they prefer to work at
     Args:
