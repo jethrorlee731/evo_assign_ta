@@ -6,15 +6,8 @@ March 28, 2023
 
 test_assign_ta.py - Unit tests for assign_ta.py
 """
-
 import assign_ta as assign
 import numpy as np
-
-# load the CSV file containing information about the sections and store the values into a numpy array
-SECTIONS = np.loadtxt('sections.csv', skiprows=1, delimiter=',', dtype=str)
-
-# load the CSV file containing information about the TAs and store the values into an array
-TAS = np.loadtxt('tas.csv', skiprows=1, delimiter=',', dtype=str)
 
 # load in the CSV files that contain the test cases for the pytest unit tests
 test1 = np.loadtxt('test1.csv', delimiter=',', dtype=int)
