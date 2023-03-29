@@ -13,6 +13,7 @@ import numpy as np
 import random as rnd
 import pandas as pd
 
+
 def main():
     # initialize the evolutionary programming framework
     E = Evo()
