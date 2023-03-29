@@ -1,10 +1,10 @@
 """
 Colbe Chang, JC Ju, Jethro R. Lee, Michelle Wang, and Ceara Zhang
 DS3500
-HW4: An Evolutionary Approach to TA/Lab Assignments (evo.py)
+HW4: An Evolutionary Approach to TA/Lab Assignments (assign_ta.py)
 March 28, 2023
 
-objectives.py - a program that gets run to initiate the evolution process
+assign_ta.py - a program that gets run to initiate the evolution process
 """
 # import statements
 from evo import Evo
