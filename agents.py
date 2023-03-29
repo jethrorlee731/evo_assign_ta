@@ -117,7 +117,7 @@ def remove_unwilling(solutions):
 
     # if there are candidate labs available, remove a TA from a section they don't want to work for
     if len(bad_labs[0]) > 0:
-        removal = rnd.choice(bad_labs[0])
+        removal = np.random.choice(bad_labs[0])
         L[ta, removal] = 0
 
     return L
@@ -217,7 +217,8 @@ def remove_ta_overallocated(solutions):
         candidate_labs = np.where(np.array(L[ta]) == 1)
 
         # remove a TA from a random lab they're assigned to
-        lab = rnd.choice(candidate_labs[0])
+        # lab = rnd.choice(candidate_labs[0])
+        lab = candidate_labs[0][np.random.randint(len(candidate_labs[0]))]
         L[ta, lab] = 0
 
     return L

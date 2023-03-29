@@ -6,7 +6,7 @@ March 28, 2023
 
 test_assign_ta.py - Unit tests for assign_ta.py
 """
-import assign_ta as assign
+from evo_assign_ta import assign_ta as assign
 import numpy as np
 
 # load in the CSV files that contain the test cases for the pytest unit tests
