@@ -42,8 +42,7 @@ def overallocation(L):
     return oa_penalty
 
 def conflicts(L):
-    """
-    Number of TAs with one or more time conflicts
+    """ Number of TAs with one or more time conflicts
     Args:
         L (numpy array): a solution in the form of a 2D array with sections as columns and tas as rows
     Return:

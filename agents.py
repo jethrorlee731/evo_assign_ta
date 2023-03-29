@@ -19,7 +19,6 @@ def add_ta_preferred(solutions):
     Returns:
         L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
     """
-
     # extract a solution
     L = solutions[0]
 
@@ -47,9 +46,6 @@ def add_ta_undersupport(solutions):
     Returns:
         L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
     """
-    # initializing a list that stores under-supported labs
-    labs_in_need = []
-
     # extract a solution
     L = solutions[0]
 
@@ -199,10 +195,6 @@ def remove_ta_overallocated(solutions):
     Returns:
         L (numpy array): an updated version of the inputted 2D array that reflects the agent's changes
     """
-    # lists that store possible TAs and labs they could get removed from
-    candidate_tas = []
-    candidate_labs = []
-
     # extract a solution
     L = solutions[0]
 

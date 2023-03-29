@@ -17,14 +17,14 @@ def main():
     # initialize the evolutionary programming framework
     E = Evo()
 
-    # Register some objectives
+    # Register objectives
     E.add_fitness_criteria("overallocation", TA.overallocation)
     E.add_fitness_criteria("conflicts", TA.conflicts)
     E.add_fitness_criteria("undersupport", TA.undersupport)
     E.add_fitness_criteria("unwilling", TA.unwilling)
     E.add_fitness_criteria("unpreferred", TA.unpreferred)
 
-    # Register some agents
+    # Register agents
     E.add_agent("swap_assignment", ag.swap_assignment, k=1)
     E.add_agent("add_ta_preferred", ag.add_ta_preferred, k=1)
     E.add_agent("add_ta_undersupport", ag.add_ta_undersupport, k=1)

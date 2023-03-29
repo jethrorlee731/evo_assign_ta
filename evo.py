@@ -28,8 +28,6 @@ class Evo:
         self.pop = {}
         self.fitness = {}
         self.agents = {}
-        self.df = pd.DataFrame(columns=['groupname', 'overallocation', 'conflicts', 'undersupport',
-                                        'unwilling', 'unpreferred'])
 
     def size(self):
         """ The size of the solution population (helper function)
@@ -61,13 +59,11 @@ class Evo:
 
     def get_random_solutions(self, k=1):
         """ Picking k random solutions from the population as a list of solutions
-
         We are returning the DEEP copies of these solutions as a list
-
         Args:
             k (int) - the number of random solutions that gets chosen randomly
         Returns:
-            an empty list or a list of k random solutions
+            random_sol (list): an empty list or a list of k random solutions
         """
         # this scenario should not happen because the population is always initialized with one random solution
         if self.size() == 0:
@@ -76,8 +72,9 @@ class Evo:
             # get the solutions
             popvals = tuple(self.pop.values())
             # we are using deep copies because we don't want to change the original solutions (similar to reproduction)
-            # otherwise, so many solutions would get altered at once, leading to just one solution
-            return [copy.deepcopy(rnd.choice(popvals)) for _ in range(k)]
+            random_sol = [copy.deepcopy(rnd.choice(popvals)) for _ in range(k)]
+
+        return random_sol
 
     def add_solution(self, sol):
         """ Add a new solution to the population
