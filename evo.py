@@ -11,8 +11,8 @@ import copy
 from functools import reduce
 import pickle
 import time
-import pandas as pd
 import os
+
 
 class Evo:
     """
@@ -21,7 +21,6 @@ class Evo:
         pop (dict): maps evaluation scores to solutions; solution-evaluation (key) ==> solution (value)
         fitness (dict): name of fitness function (key) ==> objective function (value)
         agents(dict): name of the agent (key) ==> (agent operator, # of input solutions) (value)
-        df (Pandas dataframe): a dataframe to store the results in
     """
 
     def __init__(self):
@@ -114,8 +113,8 @@ class Evo:
         Args:
             n (int) - # of agent invocations
             dom (int) - # of iterations between discarding the dominated solutions
-            status (int) - # of iterations between the last shown solution and the most recently shown one
-            sync (int) - # of iterations between printing current population to the screen
+            status (int) - # of iterations between the last printed solution and the most recently shown one
+            sync (int) - # iterations between saving population to disk
             time_limit (int) - # of seconds the optimizer runs for
         Returns:
             None, just runs the agents against the population
@@ -143,8 +142,11 @@ class Evo:
                 # remove the dominated solutions every 100 times by default
                 self.remove_dominated()
 
-            if i % status == 0:  # print the population size and iteration number
+            if i % status == 0:  # print the population
                 self.remove_dominated()
+                print("Iteration: ", i)
+                print("Population Size: ", self.size())
+                print(self)
 
             if i % sync == 0:
                 try:
@@ -156,6 +158,7 @@ class Evo:
                         # merge loaded solutions into the population
                         for eval, sol in loaded.items():
                             self.pop[eval] = sol
+
                 except Exception as e:
                     print(e)
 
@@ -176,10 +179,10 @@ class Evo:
         Returns:
             a boolean value indicating whether p dominates q
         """
-        # get the scores for one solution
+        # get the evaluation scores for one solution
         pscores = [score for _, score in p]
 
-        # get the scores for the other solution
+        # get the evaluation scores for the other solution
         qscores = [score for _, score in q]
 
         # calculate the differences in the scores between the two solutions
@@ -222,13 +225,12 @@ class Evo:
         Args:
             None
         Returns:
-            rslt(str): Return a string with the key being the 5 objectives and the scores and the
-            value being the numpy array solution
+            rslt(str): contains the 5 objectives mapped to respective scores as well as the numpy array solution
         """
         # initialize empty string
         rslt = ''
         for eval, sol in self.pop.items():
-            # result string to be all the evaluations (all 5 objectives) and the numpy array solution
+            # result string: all 5 objectives mapped to evaluation scores and the numpy array solution
             rslt += str(dict(eval)) + ":\t" + str(sol) + "\n"
 
         return rslt

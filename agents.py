@@ -4,13 +4,14 @@ DS3500
 HW4: An Evolutionary Approach to TA/Lab Assignments (agents.py)
 March 28, 2023
 
-agents.py - agents for the framework to modify solutions so they better align with the objectives
+agents.py - agents for the framework that modify solutions so they better align with the objectives
 """
-
-import assign_ta as TA
+# import statements
+import objectives as ob
 import random as rnd
 import numpy as np
 from collections import defaultdict
+
 
 def add_ta_preferred(solutions):
     """ Assigning a TA to a certain lab section they prefer to work at
@@ -23,15 +24,15 @@ def add_ta_preferred(solutions):
     L = solutions[0]
 
     # get the preferences that TAs have for working in particular sections and store them in a list
-    preference_list = TA.PREFERENCE_ARRAY.tolist()
+    preference_list = ob.PREFERENCE_ARRAY.tolist()
 
     # pick a random TA
-    ta = rnd.choice(range(TA.PREFERENCE_ARRAY.shape[0]))
+    ta = rnd.choice(range(ob.PREFERENCE_ARRAY.shape[0]))
 
     # look for the labs the chosen TA would prefer working at
     good_labs = np.where(np.array(preference_list[ta]) == 'P')
 
-    # if there are candidate labs available, assign a TA in a section they prefer
+    # if there are candidate labs available, assign a TA to a section they prefer
     if len(good_labs[0]) > 0:
         addition = rnd.choice(good_labs[0])
         L[ta, addition] = 1
@@ -54,9 +55,9 @@ def add_ta_undersupport(solutions):
 
     # create a list of tuples, where the first element is the number of TAs assigned to a lab and the second is the
     # minimum number of TAs each lab needs
-    assigned_vs_needed = list(zip(ta_num, TA.MIN_TA_LIST))
+    assigned_vs_needed = list(zip(ta_num, ob.MIN_TA_LIST))
 
-    # store the labs that need more ta in a list
+    # store the labs that need more TAs in a list
     labs_in_need = list(
         filter(lambda i: assigned_vs_needed[i][0] < assigned_vs_needed[i][1], range(len(assigned_vs_needed))))
 
@@ -80,10 +81,10 @@ def remove_unpreferred(solutions):
     L = solutions[0]
 
     # get the preferences that TAs have for working in particular sections and store them in a list
-    preference_list = TA.PREFERENCE_ARRAY.tolist()
+    preference_list = ob.PREFERENCE_ARRAY.tolist()
 
     # pick a random TA
-    ta = rnd.choice(range(TA.PREFERENCE_ARRAY.shape[0]))
+    ta = rnd.choice(range(ob.PREFERENCE_ARRAY.shape[0]))
 
     # look for the labs the chosen TA is only willing to work at
     bad_labs = np.where(np.array(preference_list[ta]) == 'W')
@@ -107,10 +108,10 @@ def remove_unwilling(solutions):
     L = solutions[0]
 
     # get the preferences that TAs have for working in particular sections and store them in a list
-    preference_list = TA.PREFERENCE_ARRAY.tolist()
+    preference_list = ob.PREFERENCE_ARRAY.tolist()
 
     # pick a random TA
-    ta = rnd.choice(range(TA.PREFERENCE_ARRAY.shape[0]))
+    ta = rnd.choice(range(ob.PREFERENCE_ARRAY.shape[0]))
 
     # look for the labs the chosen TA does not want to work at
     bad_labs = np.where(np.array(preference_list[ta]) == 'U')
@@ -151,7 +152,7 @@ def remove_time_conflict(solutions):
     for ta, labs in assignments_dict.items():
         for lab in labs:
             # get the times for each section a TA is assigned to
-            time = TA.DAYTIME_LIST[lab]
+            time = ob.DAYTIME_LIST[lab]
             # append to a new dictionary with key being the TA, value being the section times (list)
             day_dict[ta].append(time)
 
@@ -179,7 +180,7 @@ def remove_time_conflict(solutions):
                         continue
 
     # locate a lab section that a TA has a time conflict for
-    candidate_labs = np.where(np.array(TA.DAYTIME_LIST) == bad_time)
+    candidate_labs = np.where(np.array(ob.DAYTIME_LIST) == bad_time)
 
     # remove a TA from a lab due to time conflicts
     lab = rnd.choice(candidate_labs[0])
@@ -203,9 +204,9 @@ def remove_ta_overallocated(solutions):
 
     # create a list with tuples, where the first element is the number of labs a TA is assigned to and the second is
     # the maximum number of labs they want to work at
-    assigned_vs_max = list(zip(assigned, TA.MAX_ASSIGNED_LIST))
+    assigned_vs_max = list(zip(assigned, ob.MAX_ASSIGNED_LIST))
 
-    # store candidate tas based on if they are allocated to too many labs
+    # store candidate TAs based on whether they are allocated too many labs
     candidate_tas = list(
         filter(lambda i: assigned_vs_max[i][0] > assigned_vs_max[i][1], range(len(assigned_vs_max))))
 
@@ -225,7 +226,7 @@ def remove_ta_overallocated(solutions):
 
 def swap_assignment(solutions):
     """
-    Swap two random TA-lab assignments
+    Swap two random TA to lab assignments
     Args:
         solutions (list of numpy arrays): list of 2D arrays with sections in columns and TAs in rows
     Returns:
