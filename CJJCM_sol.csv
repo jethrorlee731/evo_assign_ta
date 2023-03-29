@@ -1,5 +1,4 @@
 groupname,overallocation,conflicts,undersupport,unwilling,unpreferred
-<<<<<<< HEAD
 CJJCM,280,41,0,220,65
 CJJCM,295,40,0,232,72
 CJJCM,286,41,0,238,51
@@ -10,7 +9,6 @@ CJJCM,272,41,0,218,68
 CJJCM,287,39,0,233,64
 CJJCM,287,38,0,218,77
 CJJCM,285,41,0,232,59
-=======
 CJJCM,0,0,2,21,7
 CJJCM,1,0,3,20,6
 CJJCM,0,0,2,26,2
@@ -151,4 +149,4 @@ CJJCM,6,0,1,19,8
 CJJCM,8,1,2,17,5
 CJJCM,1,0,7,20,2
 CJJCM,2,0,1,21,8
->>>>>>> 6c54192f0356d52eb8844f0b2bfc9e20f51d7815
+
